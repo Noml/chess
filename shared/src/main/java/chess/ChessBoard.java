@@ -10,7 +10,7 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessBoard {
-    private ChessPiece[][] board = new ChessPiece[8][8];
+    private final ChessPiece[][] board = new ChessPiece[8][8];
 
     public ChessBoard() {}
 
@@ -62,7 +62,7 @@ public class ChessBoard {
                 ChessPiece a = board[i][j];
                 ChessPiece b = that.board[i][j];
                 if((b == null && a != null)||(b != null && a == null)) return false;
-                if((b != null && a != null)) if(!b.equals(a)) return false;
+                if((b != null)) if(!b.equals(a)) return false;
             }
         }
         return true;

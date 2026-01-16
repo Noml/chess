@@ -10,8 +10,8 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessPiece {
-    private ChessGame.TeamColor pieceColor;
-    private PieceType type;
+    private final ChessGame.TeamColor pieceColor;
+    private final PieceType type;
 
     public ChessPiece(){//default to a white Pawn
         this.pieceColor = ChessGame.TeamColor.WHITE;

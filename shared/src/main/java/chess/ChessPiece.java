@@ -13,11 +13,6 @@ public class ChessPiece {
     private final ChessGame.TeamColor pieceColor;
     private final PieceType type;
 
-    public ChessPiece(){//default to a white Pawn
-        this.pieceColor = ChessGame.TeamColor.WHITE;
-        this.type = PieceType.PAWN;
-    }
-
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.pieceColor = pieceColor;
         this.type = type;
@@ -57,7 +52,7 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        throw new RuntimeException("Not implemented");
+        return new PieceMovesCalculator(board,myPosition).pieceMoves(board,myPosition);
     }
 
     @Override
@@ -72,5 +67,22 @@ public class ChessPiece {
     @Override
     public int hashCode() {
         return Objects.hash(pieceColor, type);
+    }
+
+    @Override
+    public String toString() {
+        String s;
+        switch (this.type) {
+            case PieceType.ROOK: s="r"; break;
+            case PieceType.BISHOP: s="b"; break;
+            case PieceType.KING: s="k"; break;
+            case PieceType.QUEEN: s="q"; break;
+            case PieceType.KNIGHT: s="n"; break;
+            case PieceType.PAWN: s="p"; break;
+            default:
+                s = "";
+        }
+        if(this.pieceColor == ChessGame.TeamColor.WHITE) s=s.toUpperCase();
+        return s;
     }
 }

@@ -11,19 +11,23 @@ import java.util.Objects;
 public class ChessPosition {
     private int row;
     private int col;
+    private boolean validPos;
 
     public ChessPosition(){
-        this.row = 0;
-        this.col = 0;
+        this.row = -1;
+        this.col = -1;
+        this.validPos = false;
     }
 
     public ChessPosition(int row, int col) {
         if(row<=8 && row >=1) {
             this.row = row;
+            this.validPos = true;
         }else return;
         if(col<=8 && col >=1) {
             this.col = col;
-        }
+            this.validPos = true;
+        }else this.validPos = false;
     }
 
     /**
@@ -41,6 +45,10 @@ public class ChessPosition {
     public int getColumn() {
         return this.col;
     }
+    
+    public boolean isvalidPos(){
+        return validPos;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -54,5 +62,11 @@ public class ChessPosition {
     @Override
     public int hashCode() {
         return Objects.hash(row, col);
+    }
+
+    @Override
+    public String toString() {
+        if(validPos) return String.format("[%d,%d]",row,col);
+        else return String.format("Invalid: [%d,%d]",row,col);
     }
 }

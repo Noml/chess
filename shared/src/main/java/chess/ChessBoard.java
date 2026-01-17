@@ -72,4 +72,9 @@ public class ChessBoard {
     public int hashCode() {
         return Arrays.deepHashCode(board);
     }
+
+    @Override
+    public String toString(){
+        return Arrays.toString(board);
+    }
 }

@@ -71,7 +71,7 @@ public class ChessPiece {
 
     @Override
     public String toString() {
-        String s;
+        String s = " ";
         switch (this.type) {
             case PieceType.ROOK: s="r"; break;
             case PieceType.BISHOP: s="b"; break;
@@ -79,8 +79,9 @@ public class ChessPiece {
             case PieceType.QUEEN: s="q"; break;
             case PieceType.KNIGHT: s="n"; break;
             case PieceType.PAWN: s="p"; break;
+            case null: s = " ";
             default:
-                s = "";
+                s = " ";
         }
         if(this.pieceColor == ChessGame.TeamColor.WHITE) s=s.toUpperCase();
         return s;

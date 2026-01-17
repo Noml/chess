@@ -61,8 +61,8 @@ public class ChessBoard {
             for(int j=0; j<8; j++){
                 ChessPiece a = board[i][j];
                 ChessPiece b = that.board[i][j];
-                if((b == null && a != null)||(b != null && a == null)) return false;
-                if((b != null)) if(!b.equals(a)) return false;
+                if((b == null && a != null)||(b != null && a == null)) return false;//If either is null, but the other isn't, then the board's aren't equal
+                if((b != null)) if(!b.equals(a)) return false; //Since neither is null, check if they're the same piece
             }
         }
         return true;
@@ -70,11 +70,11 @@ public class ChessBoard {
 
     @Override
     public int hashCode() {
-        return Arrays.deepHashCode(board);
+        return Arrays.deepHashCode(board);//default
     }
 
     @Override
     public String toString(){
-        return Arrays.toString(board);
+        return Arrays.toString(board);//default, simplified
     }
 }

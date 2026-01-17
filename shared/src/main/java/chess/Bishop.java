@@ -2,8 +2,6 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-
 
 public class Bishop extends PieceMovesCalculator {
     public Bishop(ChessBoard board, ChessPosition position){

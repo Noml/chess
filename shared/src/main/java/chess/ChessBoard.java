@@ -12,7 +12,7 @@ import java.util.Objects;
 public class ChessBoard {
     private final ChessPiece[][] board = new ChessPiece[8][8];
 
-    public ChessBoard() {}
+    public ChessBoard() {}//creates a member variable board
 
     /**
      * Adds a chess piece to the chessboard
@@ -61,7 +61,7 @@ public class ChessBoard {
             for(int j=0; j<8; j++){
                 ChessPiece a = board[i][j];
                 ChessPiece b = that.board[i][j];
-                if((b == null && a != null)||(b != null && a == null)) return false;//If either is null, but the other isn't, then the board's aren't equal
+                if((b == null && a != null)||(b != null && a == null)) return false;//If either is null, but the other isn't, then the boards aren't equal
                 if((b != null)) if(!b.equals(a)) return false; //Since neither is null, check if they're the same piece
             }
         }

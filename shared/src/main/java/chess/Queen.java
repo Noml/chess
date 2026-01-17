@@ -10,11 +10,13 @@ public class Queen extends PieceMovesCalculator{
     }
 
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition position) {
-        Collection<ChessMove> possibleMoves = new ArrayList<>();
-        board.addPiece(position,new ChessPiece(piece.getTeamColor(), ChessPiece.PieceType.ROOK));
+        board.addPiece(position,new ChessPiece(piece.getTeamColor(), ChessPiece.PieceType.ROOK));//act like it's a rook
+        Collection<ChessMove> possibleMoves = new ArrayList<>(super.pieceMoves(board, position));
+
+        board.addPiece(position,new ChessPiece(piece.getTeamColor(), ChessPiece.PieceType.BISHOP));//act like it's a bishop
         possibleMoves.addAll(super.pieceMoves(board, position));
-        board.addPiece(position,new ChessPiece(piece.getTeamColor(), ChessPiece.PieceType.BISHOP));
-        possibleMoves.addAll(super.pieceMoves(board, position));
+
+        board.addPiece(position,piece);//reset board with the queen
         return possibleMoves;
     }
 }

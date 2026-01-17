@@ -26,7 +26,6 @@ public class ChessPosition {
         }else return;
         if(col<=8 && col >=1) {
             this.col = col;
-            this.validPos = true;
         }else this.validPos = false;
     }
 
@@ -67,6 +66,6 @@ public class ChessPosition {
     @Override
     public String toString() {
         if(validPos) return String.format("[%d,%d]",row,col);
-        else return String.format("Invalid: [%d,%d]",row,col);
+        else return String.format("Invalid: [%d,%d]",row,col);//Show what the invalid position would be
     }
 }

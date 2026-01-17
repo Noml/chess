@@ -12,7 +12,7 @@ public class Knight extends PieceMovesCalculator{
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition position) {
         Collection<ChessMove> possibleMoves = new java.util.ArrayList<>();
         ArrayList<ChessPosition> possibleEndPos = new ArrayList<>();
-
+        //Look at all 8 possible locations, evaluate
         possibleEndPos.add(new ChessPosition(position.getRow()+2,position.getColumn()+1));//up2 right
         possibleEndPos.add(new ChessPosition(position.getRow()+2,position.getColumn()-1));//up2 left
         possibleEndPos.add(new ChessPosition(position.getRow()-2,position.getColumn()+1));//down2 right

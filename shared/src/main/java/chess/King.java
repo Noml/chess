@@ -1,25 +1,32 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
+/**
+ *  This is a calculator for the possible moves of a King
+ *
+ *
+ */
 public class King extends PieceMovesCalculator{
     public King(ChessBoard board, ChessPosition position){
         super(board, position);
         this.piece = board.getPiece(position);
     }
 
-    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition position) {
+
+    protected Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition position) {
         Collection<ChessMove> possibleMoves = new java.util.ArrayList<>();
-        ChessPosition[] possibleEndPos = new ChessPosition[8];
-        possibleEndPos[0] = new ChessPosition(position.getRow()+1,position.getColumn()+1);//up right
-        possibleEndPos[1] = new ChessPosition(position.getRow()+1,position.getColumn());//up
-        possibleEndPos[2] = new ChessPosition(position.getRow()+1,position.getColumn()-1);//up left
-        possibleEndPos[3] = new ChessPosition(position.getRow(),position.getColumn()-1);//left
-        possibleEndPos[4] = new ChessPosition(position.getRow(),position.getColumn()+1);//right
-        possibleEndPos[5] = new ChessPosition(position.getRow()-1,position.getColumn()-1);//down left
-        possibleEndPos[6] = new ChessPosition(position.getRow()-1,position.getColumn());//down
-        possibleEndPos[7] = new ChessPosition(position.getRow()-1,position.getColumn()+1);//down right
+        ArrayList<ChessPosition> possibleEndPos = new ArrayList<>();
+        //Look at all 8 possible locations, evaluate
+        possibleEndPos.add(new ChessPosition(position.getRow()+1,position.getColumn()+1));//up right
+        possibleEndPos.add(new ChessPosition(position.getRow()+1,position.getColumn()));//up
+        possibleEndPos.add(new ChessPosition(position.getRow()+1,position.getColumn()-1));//up left
+        possibleEndPos.add(new ChessPosition(position.getRow(),position.getColumn()-1));//left
+        possibleEndPos.add(new ChessPosition(position.getRow(),position.getColumn()+1));//right
+        possibleEndPos.add(new ChessPosition(position.getRow()-1,position.getColumn()-1));//down left
+        possibleEndPos.add(new ChessPosition(position.getRow()-1,position.getColumn()));//down
+        possibleEndPos.add(new ChessPosition(position.getRow()-1,position.getColumn()+1));//down right
 
         for(ChessPosition p : possibleEndPos){
             if(p.isvalidPos()){//see if it's on the board

@@ -71,18 +71,14 @@ public class ChessPiece {
 
     @Override
     public String toString() {
-        String s = " ";
-        switch (this.type) {
-            case PieceType.ROOK: s="r"; break;
-            case PieceType.BISHOP: s="b"; break;
-            case PieceType.KING: s="k"; break;
-            case PieceType.QUEEN: s="q"; break;
-            case PieceType.KNIGHT: s="n"; break;
-            case PieceType.PAWN: s="p"; break;
-            case null: s = " ";
-            default:
-                s = " ";
-        }
+        String s = switch (this.type) {
+            case PieceType.ROOK -> "r";
+            case PieceType.BISHOP -> "b";
+            case PieceType.KING -> "k";
+            case PieceType.QUEEN -> "q";
+            case PieceType.KNIGHT -> "n";
+            case PieceType.PAWN -> "p";
+        };
         if(this.pieceColor == ChessGame.TeamColor.WHITE) s=s.toUpperCase();
         return s;
     }

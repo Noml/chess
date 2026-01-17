@@ -13,8 +13,8 @@ public class Pawn extends PieceMovesCalculator{
         Collection<ChessMove> possibleMoves = new ArrayList<>();
         int forward = 1;
         boolean promotion = false;
-        if(piece.getTeamColor() == ChessGame.TeamColor.BLACK) forward = -1;//HERE if going the wrong way
-        if(position.getRow()+forward == 1 || position.getRow() +forward == 8) promotion = true;//HERE to add user input
+        if(piece.getTeamColor() == ChessGame.TeamColor.BLACK) forward = -1;//Black advances opposite of White
+        if(position.getRow()+forward == 1 || position.getRow()+forward == 8) promotion = true;
         ChessPosition f     = new ChessPosition(position.getRow()+forward,position.getColumn());//forward 1
         ChessPosition fL    = new ChessPosition(position.getRow()+forward,position.getColumn()-1);//forward left
         ChessPosition fR    = new ChessPosition(position.getRow()+forward,position.getColumn()+1);//forward right
@@ -30,10 +30,14 @@ public class Pawn extends PieceMovesCalculator{
         }if(fR.isvalidPos() && (board.getPiece(fR) != null && board.getPiece(fR).getTeamColor()!=piece.getTeamColor())) {//capture right
             promotionLogic(position, possibleMoves, promotion, fR);
         }
-
         return possibleMoves;
     }
 
+    /**
+     * When a pawn is about to promote, add the possible promotions in to the possible moves
+     * @param promotion true if it can promote on movement, false otherwise
+     * @param f final position in the ChessMove
+     */
     private void promotionLogic(ChessPosition position, Collection<ChessMove> possibleMoves, boolean promotion, ChessPosition f) {
         if(!promotion){
             possibleMoves.add(new ChessMove(position,f,null));
@@ -44,4 +48,6 @@ public class Pawn extends PieceMovesCalculator{
             possibleMoves.add(new ChessMove(position,f, ChessPiece.PieceType.QUEEN));
         }
     }
+
+
 }

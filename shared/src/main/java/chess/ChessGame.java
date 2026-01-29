@@ -54,7 +54,6 @@ public class ChessGame {
         if (piece == null) {
             return null;
         }
-
         return piece.pieceMoves(board, startPosition);
     }
 
@@ -75,16 +74,9 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        ChessPiece kingInCheck = new ChessPiece(teamColor, ChessPiece.PieceType.KING);
-        ChessPosition kingPos = new ChessPosition();
         ArrayList<ChessPosition> piecePositions = this.getAllPiecePositions();
+        ChessPosition kingPos = getKingPosition(piecePositions,teamColor);
         Map<ChessPosition, Collection<ChessMove>> boardMoves = this.getAllMoves(piecePositions);
-        for(ChessPosition p : piecePositions){
-            if(board.getPiece(p)!=null && kingInCheck.equals(board.getPiece(p))){
-                kingPos = p;
-                break;
-            }
-        }
         if(!kingPos.isvalidPos()){
             return false; //no king found
         }
@@ -107,7 +99,27 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        if(!isInCheck(teamColor)){
+            return false;
+        }
+        ArrayList<ChessPosition> piecePositions = getAllPiecePositions();
+        Map<ChessPosition, Collection<ChessMove>> boardMoves = getAllMoves(piecePositions);
+        ChessPosition kingInCheckPos = getKingPosition(piecePositions,teamColor);
+        for(ChessMove kM : boardMoves.get(kingInCheckPos)){
+            boolean validMove = true;
+            for(ChessPosition p : piecePositions){
+                for(ChessMove m : boardMoves.get(p)){
+                    if(kM.getEndPosition() == m.getEndPosition()){
+                        validMove = false;
+                        break;
+                    }
+                }
+            }
+            if(validMove){
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -155,9 +167,19 @@ public class ChessGame {
     private Map<ChessPosition, Collection<ChessMove>> getAllMoves(Collection<ChessPosition> piecePositions){
         Map<ChessPosition, Collection<ChessMove>> boardMoves = new HashMap<>();
         for(ChessPosition p : piecePositions){
-            boardMoves.put(p,board.getPiece(p).pieceMoves(board, p));
+            boardMoves.put(p,validMoves(p));
         }
         return boardMoves;
+    }
+
+    private ChessPosition getKingPosition(Collection<ChessPosition> piecePositions, TeamColor teamColor){
+        ChessPiece king = new ChessPiece(teamColor, ChessPiece.PieceType.KING);
+        for(ChessPosition p : piecePositions){
+            if(king.equals(board.getPiece(p))){
+                return p;
+            }
+        }
+        return new ChessPosition();//invalid
     }
 
 }

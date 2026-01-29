@@ -65,7 +65,11 @@ public class ChessPosition {
 
     @Override
     public String toString() {
-        if(validPos) return String.format("[%d,%d]",row,col);
-        else return String.format("Invalid: [%d,%d]",row,col);//Show what the invalid position would be
+        if(validPos){
+            return String.format("[%d,%d]",row,col);
+        }
+        else {
+            return String.format("Invalid: [%d,%d]", row, col);//Show what the invalid position would be
+        }
     }
 }

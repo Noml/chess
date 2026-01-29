@@ -75,6 +75,19 @@ public class ChessBoard {
 
     @Override
     public String toString(){
-        return Arrays.toString(board);//default, simplified
+        StringBuilder s = new StringBuilder();
+        for (int i = 7; i >= 0; i--) {
+            StringBuilder row = new StringBuilder("|");
+            for (ChessPiece p : board[i]){
+                if(p!= null){
+                    row.append(p.toString()).append("|");
+                }else{
+                    row.append(" ").append("|");
+                }
+            }
+            s.append(row.toString()).append("\n");
+        }
+
+        return s.toString();
     }
 }

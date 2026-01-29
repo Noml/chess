@@ -31,7 +31,9 @@ public class PieceMovesCalculator {
      **/
     protected Collection<ChessMove> goUntilBlocked(ChessBoard board, ChessPosition myPosition, int y, int x){//iterate until blocked (for Bishop, Rook, Queen)
         Collection<ChessMove> possibleMoves = new ArrayList<>();
-        if(x==y && y==0) return possibleMoves;//Empty if no movement
+        if(x==y && y==0) {
+            return possibleMoves;//Empty if no movement
+        }
         ChessPosition p = new ChessPosition(myPosition.getRow()+y,myPosition.getColumn()+x);
         int j=1;//multiplication factor for moves
         while(p.isvalidPos() && board.getPiece(p) == null){

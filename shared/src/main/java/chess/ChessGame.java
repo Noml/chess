@@ -77,19 +77,12 @@ public class ChessGame {
     public boolean isInCheck(TeamColor teamColor) {
         ChessPiece kingInCheck = new ChessPiece(teamColor, ChessPiece.PieceType.KING);
         ChessPosition kingPos = new ChessPosition();
-        ArrayList<ChessPosition> piecePositions = new ArrayList<>();
-        Map<ChessPosition, Collection<ChessMove>> boardMoves = new HashMap<>();
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                ChessPosition pos = new ChessPosition(i+1,j+1);
-                ChessPiece piece = board.getPiece(pos);
-                if(piece!=null) {
-                    boardMoves.put(pos, piece.pieceMoves(board, pos));
-                    piecePositions.add(pos);
-                    if (kingInCheck.equals(board.getPiece(pos))) {
-                        kingPos = new ChessPosition(i+1, j+1);//should only happen once
-                    }
-                }
+        ArrayList<ChessPosition> piecePositions = this.getAllPiecePositions();
+        Map<ChessPosition, Collection<ChessMove>> boardMoves = this.getAllMoves(piecePositions);
+        for(ChessPosition p : piecePositions){
+            if(board.getPiece(p)!=null && kingInCheck.equals(board.getPiece(p))){
+                kingPos = p;
+                break;
             }
         }
         if(!kingPos.isvalidPos()){
@@ -104,7 +97,7 @@ public class ChessGame {
                 }
             }
         }
-        return false;//if
+        return false;//if no piece threatens the king
     }
 
     /**
@@ -145,4 +138,26 @@ public class ChessGame {
     public ChessBoard getBoard() {
         return board;
     }
+
+    private ArrayList<ChessPosition> getAllPiecePositions(){
+        ArrayList<ChessPosition> piecePositions = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                ChessPosition pos = new ChessPosition(i+1,j+1);
+                if(board.getPiece(pos) != null){
+                    piecePositions.add(pos);
+                }
+            }
+        }
+        return piecePositions;
+    }
+
+    private Map<ChessPosition, Collection<ChessMove>> getAllMoves(Collection<ChessPosition> piecePositions){
+        Map<ChessPosition, Collection<ChessMove>> boardMoves = new HashMap<>();
+        for(ChessPosition p : piecePositions){
+            boardMoves.put(p,board.getPiece(p).pieceMoves(board, p));
+        }
+        return boardMoves;
+    }
+
 }

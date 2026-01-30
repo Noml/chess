@@ -10,9 +10,17 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessBoard {
-    private final ChessPiece[][] board = new ChessPiece[8][8];
+    private ChessPiece[][] boardArray = new ChessPiece[8][8];
 
     public ChessBoard() {}//creates a member variable board
+
+    public ChessBoard(ChessBoard board){
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                this.boardArray[i][j] = board.getBoard()[i][j];
+            }
+        }
+    }
 
     /**
      * Adds a chess piece to the chessboard
@@ -21,7 +29,7 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        this.board[position.getRow()-1][position.getColumn()-1] = piece;
+        this.boardArray[position.getRow()-1][position.getColumn()-1] = piece;
     }
 
     /**
@@ -32,7 +40,7 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        return this.board[position.getRow()-1][position.getColumn()-1];
+        return this.boardArray[position.getRow()-1][position.getColumn()-1];
     }
 
     /**
@@ -44,11 +52,15 @@ public class ChessBoard {
                 ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.KING, ChessPiece.PieceType.BISHOP,
                 ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.ROOK};
         for(int i=0;i<8;i++){
-            this.board[0][i] = new ChessPiece(ChessGame.TeamColor.WHITE, standard[i]);
-            this.board[1][i] = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
-            this.board[6][i] = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN);
-            this.board[7][i] = new ChessPiece(ChessGame.TeamColor.BLACK, standard[i]);
+            this.boardArray[0][i] = new ChessPiece(ChessGame.TeamColor.WHITE, standard[i]);
+            this.boardArray[1][i] = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
+            this.boardArray[6][i] = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN);
+            this.boardArray[7][i] = new ChessPiece(ChessGame.TeamColor.BLACK, standard[i]);
         }
+    }
+
+    public ChessPiece[][] getBoard() {
+        return boardArray;
     }
 
     @Override
@@ -59,8 +71,8 @@ public class ChessBoard {
         ChessBoard that = (ChessBoard) o;
         for(int i=0; i<8; i++){
             for(int j=0; j<8; j++){
-                ChessPiece a = board[i][j];
-                ChessPiece b = that.board[i][j];
+                ChessPiece a = boardArray[i][j];
+                ChessPiece b = that.boardArray[i][j];
                 if((b == null && a != null)||(b != null && a == null)) return false;//If either is null, but the other isn't, then the boards aren't equal
                 if((b != null)) if(!b.equals(a)) return false; //Since neither is null, check if they're the same piece
             }
@@ -70,7 +82,7 @@ public class ChessBoard {
 
     @Override
     public int hashCode() {
-        return Arrays.deepHashCode(board);//default
+        return Arrays.deepHashCode(boardArray);//default
     }
 
     @Override
@@ -78,7 +90,7 @@ public class ChessBoard {
         StringBuilder s = new StringBuilder();
         for (int i = 7; i >= 0; i--) {
             StringBuilder row = new StringBuilder("|");
-            for (ChessPiece p : board[i]){
+            for (ChessPiece p : boardArray[i]){
                 if(p!= null){
                     row.append(p.toString()).append("|");
                 }else{

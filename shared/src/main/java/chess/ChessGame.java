@@ -102,23 +102,38 @@ public class ChessGame {
         if(!isInCheck(teamColor)){
             return false;
         }
+        ChessPiece kingInCheck = new ChessPiece(teamColor, ChessPiece.PieceType.KING);
         ArrayList<ChessPosition> piecePositions = getAllPiecePositions();
         Map<ChessPosition, Collection<ChessMove>> boardMoves = getAllMoves(piecePositions);
         ChessPosition kingInCheckPos = getKingPosition(piecePositions,teamColor);
+        //check the king's moves first to see if it can move out of check
         for(ChessMove kM : boardMoves.get(kingInCheckPos)){
-            boolean validMove = true;
-            for(ChessPosition p : piecePositions){
-                for(ChessMove m : boardMoves.get(p)){
-                    if(kM.getEndPosition() == m.getEndPosition()){
-                        validMove = false;
-                        break;
-                    }
-                }
-            }
-            if(validMove){
+            ChessBoard newBoard = new ChessBoard(board);
+            newBoard.addPiece(kM.getStartPosition(), null);
+            newBoard.addPiece(kM.getEndPosition(), new ChessPiece(teamColor, ChessPiece.PieceType.KING));//act like the king is there
+            ChessGame possibleMove = new ChessGame();
+            possibleMove.setBoard(newBoard);
+            if(!possibleMove.isInCheck(teamColor)){
                 return false;
             }
         }
+        for(ChessPosition pos : piecePositions){
+            if(board.getPiece(pos).getTeamColor() == teamColor && !kingInCheck.equals(board.getPiece(pos))){//only look at your team's piece color (and disregard the king's moves)
+                for(ChessMove m : boardMoves.get(pos)){
+                    ChessBoard newBoard = new ChessBoard(board);
+                    newBoard.addPiece(m.getStartPosition(), null);
+                    newBoard.addPiece(m.getEndPosition(), new ChessPiece(teamColor, ChessPiece.PieceType.PAWN));//act like a pawn is there
+                    ChessGame possibleMove = new ChessGame();
+                    possibleMove.setBoard(newBoard);
+                    if(!possibleMove.isInCheck(teamColor)){
+                        return false;
+                    }
+
+                }
+            }
+        }
+        //need to account for other pieces being able to take or block checkmate
+        //Check all possible moves for your team, then see if moving there would make it possible to get out of check
         return true;
     }
 

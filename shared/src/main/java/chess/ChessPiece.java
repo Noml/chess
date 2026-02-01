@@ -79,7 +79,9 @@ public class ChessPiece {
             case PieceType.KNIGHT -> "n";
             case PieceType.PAWN -> "p";
         };
-        if(this.pieceColor == ChessGame.TeamColor.WHITE) s=s.toUpperCase();
+        if(this.pieceColor == ChessGame.TeamColor.WHITE) {
+            s=s.toUpperCase();
+        }
         return s;
     }
 }

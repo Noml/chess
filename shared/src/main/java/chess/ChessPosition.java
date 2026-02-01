@@ -23,10 +23,14 @@ public class ChessPosition {
         if(row<=8 && row >=1) {
             this.row = row;
             this.validPos = true;
-        }else return;
+        }else {
+            return;
+        }
         if(col<=8 && col >=1) {
             this.col = col;
-        }else this.validPos = false;
+        }else {
+            this.validPos = false;
+        }
     }
 
     /**

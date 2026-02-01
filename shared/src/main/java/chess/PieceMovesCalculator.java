@@ -43,7 +43,9 @@ public class PieceMovesCalculator {
             p = new ChessPosition(myPosition.getRow()+y*j,myPosition.getColumn()+x*j);//Look at the next position in the desired direction
         }
         //Look one step farther
-        if(p.isvalidPos() && board.getPiece(p).getTeamColor() != piece.getTeamColor()) possibleMoves.add(new ChessMove(myPosition,p,null));
+        if(p.isvalidPos() && board.getPiece(p).getTeamColor() != piece.getTeamColor()) {
+            possibleMoves.add(new ChessMove(myPosition, p, null));
+        }
 
         return possibleMoves;
     }

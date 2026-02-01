@@ -13,8 +13,8 @@ public class Pawn extends PieceMovesCalculator{
         Collection<ChessMove> possibleMoves = new ArrayList<>();
         int forward = 1;
         boolean promotion = false;
-        if(piece.getTeamColor() == ChessGame.TeamColor.BLACK) forward = -1;//Black advances opposite of White
-        if(position.getRow()+forward == 1 || position.getRow()+forward == 8) promotion = true;
+        if(piece.getTeamColor() == ChessGame.TeamColor.BLACK) {forward = -1;}//Black advances opposite of White
+        if(position.getRow()+forward == 1 || position.getRow()+forward == 8) {promotion = true;}
         ChessPosition f     = new ChessPosition(position.getRow()+forward,position.getColumn());//forward 1
         ChessPosition fL    = new ChessPosition(position.getRow()+forward,position.getColumn()-1);//forward left
         ChessPosition fR    = new ChessPosition(position.getRow()+forward,position.getColumn()+1);//forward right

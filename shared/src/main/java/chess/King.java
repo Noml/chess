@@ -30,8 +30,12 @@ public class King extends PieceMovesCalculator{
 
         for(ChessPosition p : possibleEndPos){
             if(p.isvalidPos()){//see if it's on the board
-                if(board.getPiece(p)== null) possibleMoves.add(new ChessMove(position,p,null));//empty
-                else if(board.getPiece(p).getTeamColor()!=piece.getTeamColor()) possibleMoves.add(new ChessMove(position,p,null));//capture
+                if(board.getPiece(p)== null){
+                    possibleMoves.add(new ChessMove(position,p,null));//empty
+                }
+                else if(board.getPiece(p).getTeamColor()!=piece.getTeamColor()) {
+                    possibleMoves.add(new ChessMove(position, p, null));//capture
+                }
             }
         }
         return possibleMoves;

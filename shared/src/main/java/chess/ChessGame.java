@@ -14,8 +14,8 @@ public class ChessGame {
 
     public ChessGame() {
         this.board = new ChessBoard();
-        board.resetBoard();
-        this.currentTurn = TeamColor.WHITE;
+        board.resetBoard();//set the board to the starting setup
+        setTeamTurn(TeamColor.WHITE);//start with White
     }
 
     /**
@@ -98,9 +98,9 @@ public class ChessGame {
         board.addPiece(end, piece);
         board.addPiece(start,null);
         if(currentTurn == TeamColor.BLACK){
-            currentTurn = TeamColor.WHITE;
+            setTeamTurn(TeamColor.WHITE);
         }else{
-            currentTurn = TeamColor.BLACK;
+            setTeamTurn(TeamColor.BLACK);
         }
     }
 

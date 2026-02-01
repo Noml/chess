@@ -29,7 +29,8 @@ public class PieceMovesCalculator {
      * @param y {1,-1,0} up, down, or no movement
      * @param x {1,-1,0} right, left, or no movement
      **/
-    protected Collection<ChessMove> goUntilBlocked(ChessBoard board, ChessPosition myPosition, int y, int x){//iterate until blocked (for Bishop, Rook, Queen)
+    protected Collection<ChessMove> goUntilBlocked(ChessBoard board, ChessPosition myPosition, int y, int x){
+        //iterate until blocked (for Bishop, Rook, Queen)
         Collection<ChessMove> possibleMoves = new ArrayList<>();
         if(x==y && y==0) {
             return possibleMoves;//Empty if no movement

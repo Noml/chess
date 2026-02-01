@@ -148,7 +148,8 @@ public class ChessGame {
             return false;//If the king can move, then it's not in check
         }
         for(ChessPosition pos : piecePositions){
-            if(board.getPiece(pos).getTeamColor() == teamColor && !kingInCheck.equals(board.getPiece(pos))){//only look at your team's piece color (and disregard the king's moves)
+            if(board.getPiece(pos).getTeamColor() == teamColor && !kingInCheck.equals(board.getPiece(pos))){
+                //only look at your team's piece color (and disregard the king's moves)
                 Collection<ChessMove> pieceMoves = validMoves(pos);
                 if(!pieceMoves.isEmpty()){
                     return false;//If any piece can move, then it's not in check

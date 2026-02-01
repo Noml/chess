@@ -73,8 +73,10 @@ public class ChessBoard {
             for(int j=0; j<8; j++){
                 ChessPiece a = boardArray[i][j];
                 ChessPiece b = that.boardArray[i][j];
-                if((b == null && a != null)||(b != null && a == null)) return false;//If either is null, but the other isn't, then the boards aren't equal
-                if((b != null)) if(!b.equals(a)) return false; //Since neither is null, check if they're the same piece
+                //If either is null, but the other isn't, then the boards aren't equal
+                if((b == null && a != null)||(b != null && a == null)) return false;
+                //Since neither is null, check if they're the same piece
+                if((b != null)) if(!b.equals(a)) return false;
             }
         }
         return true;

@@ -74,9 +74,15 @@ public class ChessBoard {
                 ChessPiece a = boardArray[i][j];
                 ChessPiece b = that.boardArray[i][j];
                 //If either is null, but the other isn't, then the boards aren't equal
-                if((b == null && a != null)||(b != null && a == null)) return false;
+                if((b == null && a != null)||(b != null && a == null)) {
+                    return false;
+                }
                 //Since neither is null, check if they're the same piece
-                if((b != null)) if(!b.equals(a)) return false;
+                if((b != null)) {
+                    if(!b.equals(a)) {
+                        return false;
+                    }
+                }
             }
         }
         return true;

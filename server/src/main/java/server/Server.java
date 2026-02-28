@@ -2,21 +2,28 @@ package server;
 
 import io.javalin.*;
 import server.Handlers.*;
+import service.Service;
+import service.UserService;
 
 public class Server {
-
+    private Service service;
     private final Javalin javalin;
+    public Database db = new Database();
+
+    public Server(Service service){
+        this();
+        this.service = service;
+    }
 
     public Server() {
-        javalin = Javalin.create(config -> config.staticFiles.add("web"));
-        javalin.post("/user", new RegisterHandler())
-                .delete("/db", new ClearHandler())
-                .post("/session", new LoginHandler())
-                .delete("/session", new LogoutHandler())
-                .get("/game", new GameHandler())
-                .post("/game", new GameHandler())
-                .put("/game", new GameHandler())
-                .start(8080);
+        javalin = Javalin.create(config -> config.staticFiles.add("/web"));
+        javalin.post("/user", new RegisterHandler((UserService) service))
+                .delete("/db", new ClearHandler(service))
+                .post("/session", new LoginHandler(service))
+                .delete("/session", new LogoutHandler(service))
+                .get("/game", new GameHandler(service))
+                .post("/game", new GameHandler(service))
+                .put("/game", new GameHandler(service));
     }
 
     public int run(int desiredPort) {

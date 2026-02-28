@@ -1,7 +1,8 @@
+package server;
+
 import ModelTypes.AuthData;
 import ModelTypes.GameData;
 import ModelTypes.UserData;
-import org.eclipse.jetty.server.Authentication;
 
 import java.util.ArrayList;
 
@@ -24,13 +25,13 @@ public class Database {
         allAuthData.add(a);
     }
 
-    public boolean userExists(String username){
+    public UserData getUserByUsername(String username){
         for( var i : allUserData){
             if(i.username().equals(username)){
-                return true;
+                return i;
             }
         }
-        return false;
+        return null;
     }
 
 

@@ -6,6 +6,7 @@ import service.Service;
 public class ServerMain {
     static void main(String[] args) {
         var piece = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
+        Database db = new Database();
         System.out.println("♕ 240 Chess Server: " + piece);
         try {
             var port = 8080;
@@ -16,7 +17,7 @@ public class ServerMain {
 //            if (args.length >= 2 && args[1].equals("sql")) {
 //                dataAccess = new MySqlDataAccess();
 //            }
-            var service = new Service();//(dataAccess);
+            var service = new Service(db);//(dataAccess);
             port = new Server(service).run(port);
             System.out.printf("Server started on port %d with %s%n", port,null);//, dataAccess.getClass());
             return;

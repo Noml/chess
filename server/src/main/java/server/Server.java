@@ -8,7 +8,7 @@ import service.UserService;
 public class Server {
     private Service service;
     private final Javalin javalin;
-    public Database db = new Database();
+
 
     public Server(Service service){
         this();

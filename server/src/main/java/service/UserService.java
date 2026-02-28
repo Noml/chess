@@ -1,21 +1,30 @@
 package service;
 
+import ModelTypes.AuthData;
 import ModelTypes.UserData;
 import dataAccess.UserDAO;
-import org.eclipse.jetty.server.Authentication;
+import server.Database;
 import service.requests.*;
 import service.results.*;
 
 public class UserService extends Service {
     private UserDAO uDAO;
 
-    public UserService() {
 
+    public UserService(Database db) {
+        super(db);
     }
 
     public RegisterResult register(RegisterRequest registerRequest) {
-        uDAO = new UserDAO(registerReqToUserData(registerRequest));
-        uDAO.getUser();
+        UserData userData = registerReqToUserData(registerRequest);
+        uDAO = new UserDAO(db);
+        UserData userDataResult = uDAO.getUser(userData);
+        if(userDataResult == null){
+            uDAO.createUser(userData);
+            uDAO.addAuthData(new AuthData(generateAuthToken(),userData.username()));
+        }else{
+            //send status code for alreadyTakenException
+        }
 
         return null;
     }

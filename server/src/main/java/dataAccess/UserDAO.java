@@ -1,19 +1,25 @@
 package dataAccess;
 
+import ModelTypes.AuthData;
 import ModelTypes.UserData;
+import server.Database;
 
-public class UserDAO {
-    private UserData userData;
+public class UserDAO extends DAO {
 
-    public UserDAO(UserData u){
-        userData = u;
+    public UserDAO(Database db){
+        super(db);
     }
 
-    public UserData getUserData() {
-        return userData;
+    public UserData getUser(UserData userData){
+        return db.getUserByUsername(userData.username());
     }
 
-    public UserData getUser(){
-
+    public void createUser(UserData userData){
+        db.addUserData(userData);
     }
+
+    public void addAuthData(AuthData authData){
+        db.addAuthData(authData);
+    }
+
 }

@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import service.Service;
 import service.UserService;
 import service.requests.RegisterRequest;
+import service.results.RegisterResult;
 
 import java.util.Objects;
 
@@ -18,14 +19,28 @@ public class RegisterHandler implements Handler {
     }
     @Override
     public void handle(@NotNull Context context) throws Exception {
-        RegisterRequest request = new Gson().fromJson(context.body(),RegisterRequest.class);
-        if(Objects.equals(request.email(), "") || Objects.equals(request.password(), "") || Objects.equals(request.username(), "")){
+        Gson gson = new Gson();
+        RegisterRequest request = gson.fromJson(context.body(),RegisterRequest.class);
+        if(request.email() == null || request.password() == null ||request.username() == null ||
+            request.email().isEmpty() || request.password().isEmpty() || request.username().isEmpty()){
+
             context.status(400);//invalid input
-            context.result("{ \"message\": \"Error: bad request\" }");
+            ErrorResponse r = new ErrorResponse("Error: bad request");
+            context.result(gson.toJson(r));
             return;
         }
-        service.register(request);
-
-        context.result("Trying to register an account");
+        RegisterResult result = service.register(request);
+        if (result.username().equals("Error")){
+            if(result.authToken().equals("Error: already taken")){
+                context.status(403);
+            }else{
+                context.status(500);
+            }
+            ErrorResponse r = new ErrorResponse(result.authToken());
+            context.result(gson.toJson(r));
+            return;
+        }
+        context.status(200);
+        context.result(gson.toJson(result));
     }
 }

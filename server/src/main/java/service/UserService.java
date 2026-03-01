@@ -1,8 +1,9 @@
 package service;
 
-import ModelTypes.AuthData;
-import ModelTypes.UserData;
+import model.AuthData;
+import model.UserData;
 import dataAccess.UserDAO;
+import org.eclipse.jetty.server.Authentication;
 import server.Database;
 import service.requests.*;
 import service.results.*;
@@ -13,28 +14,45 @@ public class UserService extends Service {
 
     public UserService(Database db) {
         super(db);
+        uDAO = new UserDAO(db);
+    }
+
+    public UserService(Service s){
+        super(s.getDb());
+        uDAO = new UserDAO(db);
     }
 
     public RegisterResult register(RegisterRequest registerRequest) {
         UserData userData = registerReqToUserData(registerRequest);
-        uDAO = new UserDAO(db);
-        UserData userDataResult = uDAO.getUser(userData);
+        UserData userDataResult = uDAO.getUserByUsername(userData.username());
         if(userDataResult == null){
             uDAO.createUser(userData);
-            uDAO.addAuthData(new AuthData(generateAuthToken(),userData.username()));
+            AuthData authData = new AuthData(generateAuthToken(),userData.username());
+            uDAO.addAuthData(authData);
+            return new RegisterResult(authData.username(),authData.authToken());
         }else{
-            //send status code for alreadyTakenException
+            return new RegisterResult("Error", "Error: already taken");
         }
-
-        return null;
     }
     public LoginResult login(LoginRequest loginRequest) {
-        //take a username and password and check them against the database
-        return null;
+        UserData userData = new UserData(loginRequest.username(), loginRequest.password(), null);
+        UserData userDataResult = uDAO.getUserByUsername(userData.username());
+        if(userDataResult != null){//found username in db
+            if(!userDataResult.password().equals(userData.password())){//mismatched password
+                return new LoginResult("Error", "Error: unauthorized");
+            }
+            AuthData authData = new AuthData(generateAuthToken(),userData.username());
+            uDAO.addAuthData(authData);
+            return new LoginResult(authData.username(),authData.authToken());
+        }else{
+            return new LoginResult("Error", "Error: unauthorized");
+        }
     }
+
     public void logout(LogoutRequest logoutRequest) {
         //delete authToken
     }
+
 
     private UserData registerReqToUserData(RegisterRequest r){
         return new UserData(r.username(),r.password(),r.email());

@@ -1,7 +1,7 @@
 package dataAccess;
 
-import ModelTypes.AuthData;
-import ModelTypes.UserData;
+import model.AuthData;
+import model.UserData;
 import server.Database;
 
 public class UserDAO extends DAO {
@@ -10,16 +10,25 @@ public class UserDAO extends DAO {
         super(db);
     }
 
-    public UserData getUser(UserData userData){
-        return db.getUserByUsername(userData.username());
-    }
-
     public void createUser(UserData userData){
         db.addUserData(userData);
     }
 
     public void addAuthData(AuthData authData){
         db.addAuthData(authData);
+    }
+
+    public UserData getUserByUsername(String username){
+        for( var i : db.getAllUserData()){
+            if(i.username().equals(username)){
+                return i;
+            }
+        }
+        return null;
+    }
+
+    public void clearUserData(){
+        db.deleteData(Database.DataType.USERDATA);
     }
 
 }

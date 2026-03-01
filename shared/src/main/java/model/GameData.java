@@ -1,4 +1,4 @@
-package ModelTypes;
+package model;
 
 import chess.ChessGame;
 

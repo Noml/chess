@@ -1,5 +1,8 @@
 package service;
 
+import dataAccess.AuthDAO;
+import dataAccess.GameDAO;
+import dataAccess.UserDAO;
 import server.Database;
 
 import java.util.UUID;
@@ -14,9 +17,17 @@ public class Service {
         return UUID.randomUUID().toString();
     }
 
-    public void register() {
+    public void clear(){
+        AuthDAO a = new AuthDAO(db);
+        GameDAO g = new GameDAO(db);
+        UserDAO u = new UserDAO(db);
 
+        a.clearAuthData();
+        g.clearGameData();
+        u.clearUserData();
+    }
 
-
+    public Database getDb(){
+        return db;
     }
 }

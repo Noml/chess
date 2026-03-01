@@ -14,9 +14,10 @@ import java.util.Objects;
 public class RegisterHandler implements Handler {
     private UserService service;
 
-    public RegisterHandler(UserService service){
-        this.service = service;
+    public RegisterHandler(Service service){
+        this.service = new UserService(service);
     }
+
     @Override
     public void handle(@NotNull Context context) throws Exception {
         Gson gson = new Gson();

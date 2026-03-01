@@ -18,6 +18,6 @@ public class ClearHandler implements Handler {
     public void handle(@NotNull Context context) throws Exception {
         service.clear();
         context.status(200);
-        context.result("{}");//gson.toJson(""));
+        context.result("{}");
     }
 }

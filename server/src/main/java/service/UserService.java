@@ -1,5 +1,6 @@
 package service;
 
+import dataAccess.AuthDAO;
 import model.AuthData;
 import model.UserData;
 import dataAccess.UserDAO;
@@ -10,12 +11,6 @@ import service.results.*;
 
 public class UserService extends Service {
     private UserDAO uDAO;
-
-
-    public UserService(Database db) {
-        super(db);
-        uDAO = new UserDAO(db);
-    }
 
     public UserService(Service s){
         super(s.getDb());
@@ -49,8 +44,14 @@ public class UserService extends Service {
         }
     }
 
-    public void logout(LogoutRequest logoutRequest) {
-        //delete authToken
+    public boolean logout(LogoutRequest logoutRequest) {
+        AuthDAO aDAO = new AuthDAO(db);
+        AuthData authData = aDAO.getAuthData(logoutRequest.authToken());
+        if(authData != null){
+            return aDAO.deleteAuth(authData);
+        }else{
+            return false;//throw exception for unauthorized?
+        }
     }
 
 

@@ -14,9 +14,9 @@ public class Server {
         db = new Database();
         service = new Service(db);
         javalin = Javalin.create(config -> config.staticFiles.add("/web"));
-        javalin.post("/user", new RegisterHandler(new UserService(service)))
+        javalin.post("/user", new RegisterHandler(service))
                 .delete("/db", new ClearHandler(service))
-                .post("/session", new LoginHandler(new UserService(service)))
+                .post("/session", new LoginHandler(service))
                 .delete("/session", new LogoutHandler(service))
                 .get("/game", new GameHandler(service))
                 .post("/game", new GameHandler(service))

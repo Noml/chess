@@ -14,8 +14,8 @@ import service.results.RegisterResult;
 public class LoginHandler implements Handler {
     private UserService service;
 
-    public LoginHandler(UserService service){
-        this.service = service;
+    public LoginHandler(Service service){
+        this.service = new UserService(service);
     }
 
     @Override

@@ -15,6 +15,9 @@ public class AuthDAO extends DAO {
         db.deleteData(Database.DataType.AUTHDATA);
     }
 
+    public void addAuthData(AuthData authData){
+        db.addAuthData(authData);
+    }
 
     public AuthData getAuthData(@NotNull String authToken){
         ArrayList<AuthData> allAuthData = db.getAllAuthData();

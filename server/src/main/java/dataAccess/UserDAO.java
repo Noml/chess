@@ -14,10 +14,6 @@ public class UserDAO extends DAO {
         db.addUserData(userData);
     }
 
-    public void addAuthData(AuthData authData){
-        db.addAuthData(authData);
-    }
-
     public UserData getUserByUsername(String username){
         for( var i : db.getAllUserData()){
             if(i.username().equals(username)){

@@ -7,9 +7,8 @@ import org.jetbrains.annotations.NotNull;
 import service.Service;
 import service.UserService;
 import service.requests.LoginRequest;
-import service.requests.RegisterRequest;
+import service.results.ErrorResponse;
 import service.results.LoginResult;
-import service.results.RegisterResult;
 
 public class LoginHandler implements Handler {
     private UserService service;

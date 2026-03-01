@@ -7,9 +7,8 @@ import org.jetbrains.annotations.NotNull;
 import service.Service;
 import service.UserService;
 import service.requests.RegisterRequest;
+import service.results.ErrorResponse;
 import service.results.RegisterResult;
-
-import java.util.Objects;
 
 public class RegisterHandler implements Handler {
     private UserService service;

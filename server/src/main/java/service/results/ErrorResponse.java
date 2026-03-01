@@ -1,4 +1,4 @@
-package server.Handlers;
+package service.results;
 
 public record ErrorResponse(String message) {
 }

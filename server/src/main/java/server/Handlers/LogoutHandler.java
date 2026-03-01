@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import service.Service;
 import service.UserService;
 import service.requests.LogoutRequest;
+import service.results.ErrorResponse;
 
 public class LogoutHandler implements Handler {
     private UserService service;

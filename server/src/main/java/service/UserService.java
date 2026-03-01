@@ -59,4 +59,3 @@ public class UserService extends Service {
         return new UserData(r.username(),r.password(),r.email());
     }
 }
-

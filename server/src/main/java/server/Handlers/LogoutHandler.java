@@ -29,8 +29,9 @@ public class LogoutHandler implements Handler {
             context.status(200);
             context.result("{}");
         }else{
-          context.status(500);
-          context.result("Error: something is wrong");
+          context.status(401);
+          ErrorResponse r = new ErrorResponse("Error: unauthorized");
+          context.result(gson.toJson(r));
         }
     }
 }

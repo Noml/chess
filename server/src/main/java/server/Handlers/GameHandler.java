@@ -99,19 +99,6 @@ public class GameHandler implements Handler {
             ErrorResponse r = new ErrorResponse(e.getMessage());
             context.result(gson.toJson(r));
         }
-//
-//
-//        Gson gson = new Gson();
-//        String authToken = context.header("authorization");
-//        Map m = gson.fromJson(context.body(), Map.class);
-//        if(m == null || m.get("playerColor") == null ||
-//                !(m.get("playerColor") == "WHITE" || m.get("playerColor") == "BLACK") ||
-//                authToken == null || authToken.isEmpty()){
-//            ErrorResponse r = new ErrorResponse("Error: bad request");
-//            context.status(400);
-//            context.result(gson.toJson(r));
-//            return;
-//        }
     }
 
     private void createGame(Context context) throws Exception{

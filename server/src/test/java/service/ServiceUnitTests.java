@@ -1,5 +1,6 @@
 package service;
 
+import chess.ChessGame;
 import dataAccess.DataAccessException;
 import model.GameData;
 import org.junit.jupiter.api.Assertions;
@@ -12,6 +13,8 @@ import service.requests.RegisterRequest;
 import service.results.CreateGameResult;
 import service.results.LoginResult;
 import service.results.RegisterResult;
+
+import java.util.ArrayList;
 
 public class ServiceUnitTests {
     private Service service;
@@ -188,6 +191,55 @@ public class ServiceUnitTests {
         }
         boolean b = s.clear();
         Assertions.assertTrue(b);
+    }
+
+    @Test
+    public void listGamesPosEx() {
+        UserService s = new UserService(service);
+        GameService g = new GameService(service);
+        RegisterRequest req = new RegisterRequest("Joenathan", "1234", "na@gmail.com");
+        s.register(req);
+        LoginRequest lReq = new LoginRequest("Joenathan", "1234");
+        LoginResult lRes = s.login(lReq);
+        try {
+            CreateGameResult c = g.createGame(lRes.authToken(), "game1");
+            CreateGameResult c2 = g.createGame(lRes.authToken(), "game2");
+            CreateGameResult c3 = g.createGame(lRes.authToken(), "game3");
+            ArrayList<GameData> listed = g.listGames(lRes.authToken());
+            ArrayList<GameData> expected = new ArrayList<GameData>();
+            expected.add(new GameData(1, null, null, "game1", new ChessGame()));
+            expected.add(new GameData(2, null, null, "game2", new ChessGame()));
+            expected.add(new GameData(3, null, null, "game3", new ChessGame()));
+            for (int i = 0; i < listed.size(); i++) {
+                GameData gData = listed.get(i);
+                GameData expectedData = expected.get(i);
+                Assertions.assertEquals(gData.gameID(), expectedData.gameID());
+                Assertions.assertEquals(gData.gameName(), expectedData.gameName());
+            }
+        } catch (Exception e) {
+            Assertions.fail();
+        }
+    }
+
+    @Test
+    public void listGamesNegEx(){
+        UserService s = new UserService(service);
+        GameService g = new GameService(service);
+        RegisterRequest  req = new RegisterRequest("Joenathan","1234","na@gmail.com");
+        s.register(req);
+        LoginRequest lReq = new LoginRequest("Joenathan","1234");
+        LoginResult lRes =  s.login(lReq);
+        try {
+            CreateGameResult c = g.createGame(lRes.authToken(),"game1");
+            CreateGameResult c2 = g.createGame(lRes.authToken(),"game2");
+            CreateGameResult c3 = g.createGame(lRes.authToken(),"game3");
+            ArrayList<GameData> listed = g.listGames("invalidAuth");
+
+        }catch (Exception e){
+            String expectedMessage = new String("Error: unauthorized");
+            String message = e.getMessage();
+            Assertions.assertEquals(message,expectedMessage);
+        }
     }
 
 }

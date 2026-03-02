@@ -55,7 +55,6 @@ public class UserService extends Service {
         }
     }
 
-
     private UserData registerReqToUserData(RegisterRequest r){
         return new UserData(r.username(),r.password(),r.email());
     }

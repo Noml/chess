@@ -1,16 +1,12 @@
-package server.Handlers;
+package server.handlers;
 
 import com.google.gson.Gson;
-import dataAccess.AuthDAO;
-import dataAccess.GameDAO;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
-import model.AuthData;
 import model.GameData;
 import org.jetbrains.annotations.NotNull;
 import service.GameService;
 import service.Service;
-import service.requests.LogoutRequest;
 import service.results.CreateGameResult;
 import service.results.ErrorResponse;
 
@@ -65,11 +61,11 @@ public class GameHandler implements Handler {
             context.result(gson.toJson(j));
 
         }catch(Exception e){
-            if(e.getMessage() == "Error: bad request"){
+            if(e.getMessage().equals("Error: bad request")){
                 context.status(400);
-            }else if(e.getMessage() == "Error: unauthorized"){
+            }else if(e.getMessage().equals("Error: unauthorized")){
                 context.status(401);
-            }else if(e.getMessage() == "Error: already taken"){
+            }else if(e.getMessage().equals("Error: already taken")){
                 context.status(403);
             }
             ErrorResponse r = new ErrorResponse(e.getMessage());
@@ -89,8 +85,8 @@ public class GameHandler implements Handler {
             context.result(gson.toJson(r));
         }
         try {
-            record listedGames(ArrayList<GameData> games) { }
-            listedGames l = new listedGames(service.listGames(authToken));
+            record ListedGames(ArrayList<GameData> games) { }
+            ListedGames l = new ListedGames(service.listGames(authToken));
             context.status(200);
             context.result(gson.toJson(l));
 
@@ -119,9 +115,7 @@ public class GameHandler implements Handler {
         }catch (Exception e){
             context.status(401);
             ErrorResponse r = new ErrorResponse(e.getMessage());
-            String s = gson.toJson(r);
             context.result(gson.toJson(r));
-
         }
     }
 

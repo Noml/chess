@@ -1,13 +1,11 @@
-package dataAccess;
+package dataaccess;
 
-import model.AuthData;
 import model.GameData;
 import server.Database;
 
 import java.util.ArrayList;
 
 public class GameDAO extends DAO {
-    private GameData gameData;
     public GameDAO(Database db){
         super(db);
     }
@@ -25,7 +23,7 @@ public class GameDAO extends DAO {
         db.addGameData(gameData);
     }
 
-    public ArrayList<GameData> getAllGameData(String authToken){
+    public ArrayList<GameData> getAllGameData(){
         return db.getAllGameData();
     }
 
@@ -40,8 +38,7 @@ public class GameDAO extends DAO {
 
     public GameData addPlayer(int gameID, String playerColor, String username){
         ArrayList<GameData> allGameData = db.getAllGameData();
-        for(int i=0; i<allGameData.size(); i++) {
-            GameData g = allGameData.get(i);
+        for (GameData g : allGameData) {
             if (gameID == g.gameID()) {
                 switch (playerColor) {
                     case "BLACK":

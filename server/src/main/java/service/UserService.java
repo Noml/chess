@@ -1,11 +1,9 @@
 package service;
 
-import dataAccess.AuthDAO;
+import dataaccess.AuthDAO;
 import model.AuthData;
 import model.UserData;
-import dataAccess.UserDAO;
-import org.eclipse.jetty.server.Authentication;
-import server.Database;
+import dataaccess.UserDAO;
 import service.requests.*;
 import service.results.*;
 

@@ -1,6 +1,5 @@
-package dataAccess;
+package dataaccess;
 
-import model.AuthData;
 import model.UserData;
 import server.Database;
 

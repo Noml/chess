@@ -1,4 +1,4 @@
-package dataAccess;
+package dataaccess;
 
 import server.Database;
 

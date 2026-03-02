@@ -50,7 +50,7 @@ public class Database {
     public enum DataType{
         GAMEDATA,
         AUTHDATA,
-        USERDATA;
+        USERDATA
     }
 
     @Override
@@ -59,7 +59,9 @@ public class Database {
             return false;
         }
         Database database = (Database) o;
-        return Objects.equals(allGameData, database.allGameData) && Objects.equals(allUserData, database.allUserData) && Objects.equals(allAuthData, database.allAuthData);
+        boolean pt1 = Objects.equals(allGameData, database.allGameData) && Objects.equals(allUserData, database.allUserData);
+        boolean pt2 = Objects.equals(allAuthData, database.allAuthData);
+        return  pt1 && pt2;
     }
 
     @Override

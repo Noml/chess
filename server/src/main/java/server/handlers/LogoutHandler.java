@@ -1,4 +1,4 @@
-package server.Handlers;
+package server.handlers;
 
 import com.google.gson.Gson;
 import io.javalin.http.Context;
@@ -19,7 +19,7 @@ public class LogoutHandler implements Handler {
     public void handle(@NotNull Context context) throws Exception {
         Gson gson = new Gson();
         LogoutRequest request = new LogoutRequest(context.header("authorization"));
-        if(request == null || request.authToken() == null || request.authToken().isEmpty()){//invalid input
+        if(request.authToken() == null || request.authToken().isEmpty()){//invalid input
             context.status(500);//invalid input
             ErrorResponse r = new ErrorResponse("Error: bad request");
             context.result(gson.toJson(r));

@@ -1,9 +1,8 @@
 package server;
 
 import io.javalin.*;
-import server.Handlers.*;
+import server.handlers.*;
 import service.Service;
-import service.UserService;
 
 public class Server {
     private Service service;

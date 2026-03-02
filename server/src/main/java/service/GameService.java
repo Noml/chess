@@ -1,10 +1,9 @@
 package service;
 
 import chess.ChessGame;
-import dataAccess.AuthDAO;
-import dataAccess.DataAccessException;
-import dataAccess.GameDAO;
-import dataAccess.UserDAO;
+import dataaccess.AuthDAO;
+import dataaccess.DataAccessException;
+import dataaccess.GameDAO;
 import model.AuthData;
 import model.GameData;
 import service.results.CreateGameResult;
@@ -38,7 +37,7 @@ public class GameService extends Service{
     public ArrayList<GameData> listGames(String authToken) throws Exception{
         AuthData authData = aDAO.getAuthData(authToken);
         if(authData != null){
-            return gDAO.getAllGameData(authToken);
+            return gDAO.getAllGameData();
         }else{
             throw new DataAccessException("Error: unauthorized");
         }

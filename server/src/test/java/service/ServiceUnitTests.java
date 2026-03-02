@@ -48,7 +48,7 @@ public class ServiceUnitTests {
     public void tryAddUserTwice(){//register negative case
         UserService s = new UserService(service);
         RegisterRequest  req = new RegisterRequest("Joenathan","1234","na@gmail.com");
-        RegisterResult result = s.register(req);
+        s.register(req);
         RegisterRequest req2 = new RegisterRequest("Joenathan","12345","na2@gmail.com");
         RegisterResult result2 = s.register(req2);
         RegisterResult expected = new RegisterResult("Error","Error: already taken");
@@ -61,7 +61,7 @@ public class ServiceUnitTests {
     public void loginUser(){
         UserService s = new UserService(service);
         RegisterRequest req = new RegisterRequest("Joenathan","1234","na@gmail.com");
-        RegisterResult res = s.register(req);
+        s.register(req);
         LoginRequest lReq = new LoginRequest("Joenathan","1234");
         LoginResult lRes = s.login(lReq);
         LoginResult expected = new LoginResult("Joenathan","a1u2t3h4T5o6k7e8nEX");
@@ -74,7 +74,7 @@ public class ServiceUnitTests {
     public void loginInvalidPassword(){
         UserService s = new UserService(service);
         RegisterRequest req = new RegisterRequest("Joenathan","1234","na@gmail.com");
-        RegisterResult res = s.register(req);
+        s.register(req);
         LoginRequest lReq = new LoginRequest("Joenathan","123456789");
         LoginResult lRes = s.login(lReq);
         LoginResult expected = new LoginResult("Error","Error: unauthorized");
@@ -87,7 +87,7 @@ public class ServiceUnitTests {
     public void logoutUser(){
         UserService s = new UserService(service);
         RegisterRequest req = new RegisterRequest("Joenathan","1234","na@gmail.com");
-        RegisterResult res = s.register(req);
+        s.register(req);
         LoginRequest lReq = new LoginRequest("Joenathan","1234");
         LoginResult lRes = s.login(lReq);
         LogoutRequest logoutRequest = new LogoutRequest(lRes.authToken());
@@ -107,7 +107,7 @@ public class ServiceUnitTests {
     public void createGame(){
         UserService s = new UserService(service);
         RegisterRequest req = new RegisterRequest("Joenathan","1234","na@gmail.com");
-        RegisterResult res = s.register(req);
+        s.register(req);
         LoginRequest lReq = new LoginRequest("Joenathan","1234");
         LoginResult lRes = s.login(lReq);
         GameService g = new GameService(service);
@@ -124,48 +124,66 @@ public class ServiceUnitTests {
     public void tryCreateInvalidGame(){
         UserService s = new UserService(service);
         RegisterRequest req = new RegisterRequest("Joenathan","1234","na@gmail.com");
-        RegisterResult res = s.register(req);
         LoginRequest lReq = new LoginRequest("Joenathan","1234");
-        LoginResult lRes = s.login(lReq);
+        s.register(req);
+        s.login(lReq);
         GameService g = new GameService(service);
         DataAccessException expected = new DataAccessException("Error: unauthorized");
         try {
-            CreateGameResult c = g.createGame("fakeAuth","game1");
+            g.createGame("fakeAuth","game1");
         }catch (Exception e){
             Assertions.assertEquals(e.getMessage(),expected.getMessage());
         }
     }
 
     @Test
-    public void joinGame(){
+    public void joinGamePos(){
         UserService s = new UserService(service);
         RegisterRequest req = new RegisterRequest("Joenathan","1234","na@gmail.com");
-        RegisterResult res = s.register(req);
+        RegisterRequest req2 = new RegisterRequest("Ambar","4321","an@gmail.com");
+        s.register(req);
+        s.register(req2);
         LoginRequest lReq = new LoginRequest("Joenathan","1234");
+        LoginRequest lReq2 = new LoginRequest("Ambar","4321");
         LoginResult lRes = s.login(lReq);
+        LoginResult lRes2 = s.login(lReq2);
         GameService g = new GameService(service);
         try {
             CreateGameResult c = g.createGame(lRes.authToken(),"game1");
-            GameData gameData = g.joinGame(lRes.authToken(),"WHITE",c.gameID());
-            CreateGameResult expected = new CreateGameResult(1);
-
-
-            Assertions.assertEquals(c,expected);
-
-
+            g.joinGame(lRes.authToken(),"WHITE",c.gameID());
+            GameData gameData1 = g.joinGame(lRes2.authToken(),"BLACK",c.gameID());
+            GameData expected = new GameData(1,"Joenathan","Ambar","game1",new ChessGame());
+            Assertions.assertEquals(gameData1.gameID(),expected.gameID());
+            Assertions.assertEquals(gameData1.whiteUsername(),expected.whiteUsername());
+            Assertions.assertEquals(gameData1.blackUsername(),expected.blackUsername());
+            Assertions.assertEquals(gameData1.gameName(),expected.gameName());
         }catch (Exception e){
-            String message = e.getMessage();
             Assertions.fail();
         }
     }
 
-
-
-
-
-
-
-
+    @Test
+    public void joinGameNeg(){
+        UserService s = new UserService(service);
+        RegisterRequest req = new RegisterRequest("Joenathan","1234","na@gmail.com");
+        RegisterRequest req2 = new RegisterRequest("Ambar","4321","an@gmail.com");
+        s.register(req);
+        s.register(req2);
+        LoginRequest lReq = new LoginRequest("Joenathan","1234");
+        LoginRequest lReq2 = new LoginRequest("Ambar","4321");
+        LoginResult lRes = s.login(lReq);
+        LoginResult lRes2 = s.login(lReq2);
+        GameService g = new GameService(service);
+        try {
+            CreateGameResult c = g.createGame(lRes.authToken(),"game1");
+            g.joinGame(lRes.authToken(),"WHITE",c.gameID());
+            g.joinGame(lRes2.authToken(),"WHITE",c.gameID());
+        }catch (Exception e){
+            String message = e.getMessage();
+            String expectedMessage = "Error: already taken";
+            Assertions.assertEquals(expectedMessage, message);
+        }
+    }
 
 
     @Test
@@ -196,27 +214,37 @@ public class ServiceUnitTests {
     @Test
     public void listGamesPosEx() {
         UserService s = new UserService(service);
-        GameService g = new GameService(service);
-        RegisterRequest req = new RegisterRequest("Joenathan", "1234", "na@gmail.com");
+        RegisterRequest req = new RegisterRequest("Joenathan","1234","na@gmail.com");
+        RegisterRequest req2 = new RegisterRequest("Ambar","4321","an@gmail.com");
         s.register(req);
-        LoginRequest lReq = new LoginRequest("Joenathan", "1234");
+        s.register(req2);
+        LoginRequest lReq = new LoginRequest("Joenathan","1234");
+        LoginRequest lReq2 = new LoginRequest("Ambar","4321");
         LoginResult lRes = s.login(lReq);
+        LoginResult lRes2 = s.login(lReq2);
+        GameService g = new GameService(service);
         try {
             CreateGameResult c = g.createGame(lRes.authToken(), "game1");
             CreateGameResult c2 = g.createGame(lRes.authToken(), "game2");
-            CreateGameResult c3 = g.createGame(lRes.authToken(), "game3");
+            g.createGame(lRes.authToken(), "game3");
+            g.joinGame(lRes.authToken(),"WHITE",c.gameID());
+            g.joinGame(lRes2.authToken(),"BLACK",c.gameID());
+            g.joinGame(lRes.authToken(),"BLACK",c2.gameID());
+            g.joinGame(lRes2.authToken(),"WHITE",c2.gameID());
             ArrayList<GameData> listed = g.listGames(lRes.authToken());
-            ArrayList<GameData> expected = new ArrayList<GameData>();
-            expected.add(new GameData(1, null, null, "game1", new ChessGame()));
-            expected.add(new GameData(2, null, null, "game2", new ChessGame()));
+            ArrayList<GameData> expected = new ArrayList<>();
+            expected.add(new GameData(1,"Joenathan","Ambar","game1",new ChessGame()));
+            expected.add(new GameData(2,"Ambar","Joenathan","game2",new ChessGame()));
             expected.add(new GameData(3, null, null, "game3", new ChessGame()));
             for (int i = 0; i < listed.size(); i++) {
-                GameData gData = listed.get(i);
-                GameData expectedData = expected.get(i);
+                var gData = listed.get(i);
+                var expectedData = expected.get(i);
                 Assertions.assertEquals(gData.gameID(), expectedData.gameID());
                 Assertions.assertEquals(gData.gameName(), expectedData.gameName());
+                Assertions.assertEquals(gData.whiteUsername(),expectedData.whiteUsername());
+                Assertions.assertEquals(gData.blackUsername(),expectedData.blackUsername());
             }
-        } catch (Exception e) {
+        }catch (Exception e) {
             Assertions.fail();
         }
     }
@@ -230,16 +258,15 @@ public class ServiceUnitTests {
         LoginRequest lReq = new LoginRequest("Joenathan","1234");
         LoginResult lRes =  s.login(lReq);
         try {
-            CreateGameResult c = g.createGame(lRes.authToken(),"game1");
-            CreateGameResult c2 = g.createGame(lRes.authToken(),"game2");
-            CreateGameResult c3 = g.createGame(lRes.authToken(),"game3");
-            ArrayList<GameData> listed = g.listGames("invalidAuth");
+            g.createGame(lRes.authToken(),"game1");
+            g.createGame(lRes.authToken(),"game2");
+            g.createGame(lRes.authToken(),"game3");
+            g.listGames("invalidAuth");
 
         }catch (Exception e){
-            String expectedMessage = new String("Error: unauthorized");
+            String expectedMessage = "Error: unauthorized";
             String message = e.getMessage();
-            Assertions.assertEquals(message,expectedMessage);
+            Assertions.assertEquals(expectedMessage, message);
         }
     }
-
 }

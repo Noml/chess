@@ -50,7 +50,7 @@ public class GameHandler implements Handler {
         JoinRequest joinRequest  = gson.fromJson(context.body(), JoinRequest.class);
         if(joinRequest == null || joinRequest.playerColor == null ||
                 !(joinRequest.playerColor.equals("WHITE") || joinRequest.playerColor.equals("BLACK")) ||
-                 authToken == null || authToken.isEmpty()){
+                 authToken == null || authToken.isEmpty() || joinRequest.gameID <1){
             ErrorResponse r = new ErrorResponse("Error: bad request");
             context.status(400);
             context.result(gson.toJson(r));

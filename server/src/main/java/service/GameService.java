@@ -53,10 +53,12 @@ public class GameService extends Service{
                     if(gameData.blackUsername()!= null){
                         throw new DataAccessException("Error: already taken");
                     }
+                    break;
                 case "WHITE":
                     if(gameData.whiteUsername() != null){
                         throw new DataAccessException("Error: already taken");
                     }
+                    break;
             }
             gameData = gDAO.addPlayer(gameID, playerColor, authData.username());
             return gameData;

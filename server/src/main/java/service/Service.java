@@ -17,7 +17,7 @@ public class Service {
         return UUID.randomUUID().toString();
     }
 
-    public void clear(){
+    public boolean clear(){
         AuthDAO a = new AuthDAO(db);
         GameDAO g = new GameDAO(db);
         UserDAO u = new UserDAO(db);
@@ -25,6 +25,7 @@ public class Service {
         a.clearAuthData();
         g.clearGameData();
         u.clearUserData();
+        return true;
     }
 
     public Database getDb(){

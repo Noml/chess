@@ -75,11 +75,10 @@ public class DatabaseManager {
         Connection conn = getConnection();
         try (var createTableStatement = conn.prepareStatement(createAuthDataTable);
              var createTableStatement2 = conn.prepareStatement(createGameDataTable);
-             var createTableStatement3 = conn.prepareStatement(createUserDataTable)) {
+             var createTableStatement3 = conn.prepareStatement(createUserDataTable)){
             createTableStatement.executeUpdate();
             createTableStatement2.executeUpdate();
             createTableStatement3.executeUpdate();
-
         } catch (SQLException e) {
             throw new RuntimeException("Error creating tables",e);
         }
@@ -254,6 +253,17 @@ public class DatabaseManager {
             throw new DataAccessException("Error adding AuthData",e);
         }
 
+    }
+
+    public void deleteData(String authToken) throws DataAccessException {
+        Connection conn = getConnection();
+        var statement = "DELETE from authData WHERE authToken=?";
+        try(var prepStatement = conn.prepareStatement(statement)){
+            prepStatement.setString(1, authToken);
+            prepStatement.executeUpdate();
+        }catch (SQLException e){
+            throw new DataAccessException("Error deleting authData");
+        }
     }
 
     public enum DataType{

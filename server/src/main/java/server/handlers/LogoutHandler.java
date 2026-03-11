@@ -1,6 +1,7 @@
 package server.handlers;
 
 import com.google.gson.Gson;
+import dataaccess.DataAccessException;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.jetbrains.annotations.NotNull;
@@ -25,14 +26,18 @@ public class LogoutHandler implements Handler {
             context.result(gson.toJson(r));
             return;
         }
-//        boolean logoutCheck = service.logout(request);
-//        if(logoutCheck){
-//            context.status(200);
-//            context.result("{}");
-//        }else{
-//          context.status(401);
-//          ErrorResponse r = new ErrorResponse("Error: unauthorized");
-//          context.result(gson.toJson(r));
-//        }
+        try{
+            service.logout(request);
+            context.status(200);
+            context.result("{}");
+        }catch(DataAccessException e){
+            if(e.getMessage().equals("Error: unauthorized")){
+                context.status(401);
+            }else{
+                context.status(500);
+            }
+            ErrorResponse r = new ErrorResponse(e.getMessage());
+            context.result(gson.toJson(r));
+        }
     }
 }

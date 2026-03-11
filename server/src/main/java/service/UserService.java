@@ -8,6 +8,8 @@ import dataaccess.UserDAO;
 import service.requests.*;
 import service.results.*;
 
+import javax.xml.crypto.Data;
+
 public class UserService extends Service {
     private UserDAO uDAO;
     private AuthDAO aDAO;
@@ -32,32 +34,49 @@ public class UserService extends Service {
 //                return new RegisterResult("Error", "Error: already taken");
             }
         }catch (DataAccessException e){
+            if(e.getMessage().equals("Error: already taken")){
+                throw e;
+            }
             throw new DataAccessException("Error: SQL error");
         }
     }
-//    public LoginResult login(LoginRequest loginRequest) {
-//        UserData userData = new UserData(loginRequest.username(), loginRequest.password(), null);
-//        UserData userDataResult = uDAO.getUserByUsername(userData.username());
-//        if(userDataResult != null){//found username in db
-//            if(!userDataResult.password().equals(userData.password())){//mismatched password
-//                return new LoginResult("Error", "Error: unauthorized");
-//            }
-//            AuthData authData = new AuthData(generateAuthToken(),userData.username());
-//            aDAO.addAuthData(authData);
-//            return new LoginResult(authData.username(),authData.authToken());
-//        }else{
-//            return new LoginResult("Error", "Error: unauthorized");
-//        }
-//    }
+    public LoginResult login(LoginRequest loginRequest) throws DataAccessException {
+        UserData userData = new UserData(loginRequest.username(), loginRequest.password(), null);
+        try {
+            UserData userDataResult = uDAO.getUserByUsername(userData.username());
+            if (userDataResult != null) {//found username in db
+                if (!userDataResult.password().equals(userData.password())) {//mismatched password
+                    throw new DataAccessException("Error: unauthorized");
+                }
+                AuthData authData = new AuthData(generateAuthToken(), userData.username());
+                aDAO.addAuthData(authData);
+                return new LoginResult(authData.username(), authData.authToken());
+            } else {
+                throw new DataAccessException("Error: unauthorized");
+            }
+        }catch(DataAccessException e){
+            if(e.getMessage().equals("Error: unauthorized")){
+                throw e;
+            }
+            throw new DataAccessException("Error: SQL error");
+        }
+    }
 
-//    public boolean logout(LogoutRequest logoutRequest) {
-//        AuthData authData = aDAO.getAuthData(logoutRequest.authToken());
-//        if(authData != null){
-//            return aDAO.deleteAuth(authData);
-//        }else{
-//            return false;//throw exception for unauthorized?
-//        }
-//    }
+    public void logout(LogoutRequest logoutRequest) throws DataAccessException {
+        try{
+            AuthData authData = aDAO.getAuthData(logoutRequest.authToken());//could throw an exception
+            if(authData != null){
+                aDAO.deleteAuth(authData);
+            }else{
+                throw new DataAccessException("Error: unauthorized");
+            }
+        } catch (DataAccessException e) {
+            if(e.getMessage().equals("Error: unauthorized")){
+                throw e;
+            }
+            throw new DataAccessException("Error: SQL error");
+        }
+    }
 
     private UserData registerReqToUserData(RegisterRequest r){
         return new UserData(r.username(),r.password(),r.email());

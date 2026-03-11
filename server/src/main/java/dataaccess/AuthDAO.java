@@ -28,14 +28,7 @@ public class AuthDAO extends DAO{
         return null;
     }
 
-    public boolean deleteAuth(AuthData authDataToDelete) throws DataAccessException{
-        ArrayList<AuthData> allAuthData = db.getAllAuthData();
-        for(AuthData authData : allAuthData){
-            if(authData.authToken().equals(authDataToDelete.authToken())){
-                allAuthData.remove(authData);
-                return true;
-            }
-        }
-        return false;//not found, shouldn't happen because of earlier check
+    public void deleteAuth(AuthData authDataToDelete) throws DataAccessException{
+        db.deleteData(authDataToDelete.authToken());
     }
 }

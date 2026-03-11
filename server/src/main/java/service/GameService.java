@@ -21,7 +21,7 @@ public class GameService extends Service{
     }
 
 //    public CreateGameResult createGame(String authToken, String gameName) throws Exception{
-//        MemoryAuthDAO aDAO = new MemoryAuthDAO(db);
+//        AuthDAO aDAO = new AuthDAO(dbManager);
 //        AuthData authData = aDAO.getAuthData(authToken);
 //        if(authData != null){
 //            int gameID = gDAO.getID();

@@ -12,11 +12,15 @@ public class Server {
     private Database db;
     private DatabaseManager dbManager;
 
-    public Server() throws DataAccessException {
-        db = new Database();
-        dbManager = new DatabaseManager();
+    public Server() {
+//        db = new Database();
+        try{
+            dbManager = new DatabaseManager();
+        }catch(DataAccessException e){
+            System.out.println(e.getMessage());
+        }
 //        service = new Service(db);
-        service =new Service(dbManager);
+        service = new Service(dbManager);
         javalin = Javalin.create(config -> config.staticFiles.add("/web"));
         javalin.post("/user", new RegisterHandler(service))
                 .delete("/db", new ClearHandler(service))

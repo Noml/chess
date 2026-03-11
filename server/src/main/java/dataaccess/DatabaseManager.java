@@ -1,8 +1,15 @@
 package dataaccess;
 
+import chess.ChessGame;
+import com.google.gson.Gson;
+import model.AuthData;
+import model.GameData;
+import model.UserData;
+
 import server.Database;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Properties;
 
 public class DatabaseManager {
@@ -10,10 +17,12 @@ public class DatabaseManager {
     private static String dbUsername;
     private static String dbPassword;
     private static String connectionUrl;
+    private Gson gson;
 
     public DatabaseManager() throws DataAccessException{
         createDatabase();
         createTables();
+        gson = new Gson();
     }
     /*
      * Load the database information for the db.properties file.
@@ -140,6 +149,106 @@ public class DatabaseManager {
                 } catch (SQLException e) {
                     throw new RuntimeException("Error deleting userData",e);
                 }
+        }
+
+    }
+
+
+    public ArrayList<UserData> getAllUserData() throws DataAccessException{
+        Connection conn = getConnection();
+        ArrayList<UserData> allUserData = new ArrayList<>();
+        try(var preparedStatement = conn.prepareStatement("SELECT username, password, email FROM userData")){
+            try(var rs = preparedStatement.executeQuery()){
+                while(rs.next()){
+                    var username = rs.getString("username");
+                    var password = rs.getString("password");
+                    var email = rs.getString("email");
+                    var userData = new UserData(username,password,email);
+                    allUserData.add(userData);
+                }
+            }
+            return allUserData;
+        }catch(SQLException e){
+            throw new DataAccessException("Error getting data from table userData",e);
+        }
+    }
+
+    public ArrayList<AuthData> getAllAuthData() throws DataAccessException{
+        Connection conn = getConnection();
+        ArrayList<AuthData> allAuthData = new ArrayList<>();
+        try(var preparedStatement = conn.prepareStatement("SELECT authToken, username FROM authData")){
+            try(var rs = preparedStatement.executeQuery()){
+                while(rs.next()){
+                    var authToken = rs.getString("authToken");
+                    var username = rs.getString("username");
+                    var authData = new AuthData(authToken,username);
+                    allAuthData.add(authData);
+                }
+            }
+            return allAuthData;
+        }catch(SQLException e){
+            throw new DataAccessException("Error getting data from table authData",e);
+        }
+    }
+
+    public ArrayList<GameData> getAllGameData() throws DataAccessException{
+        Connection conn = getConnection();
+
+        ArrayList<GameData> allGameData = new ArrayList<>();
+        try(var preparedStatement = conn.prepareStatement("SELECT gameID, whiteUsername,blackUsername,gameName,ChessGame FROM gameData")){
+            try(var rs = preparedStatement.executeQuery()){
+                while(rs.next()){
+                    var gameID = rs.getInt("gameID");
+                    var whiteUsername = rs.getString("whiteUsername");
+                    var blackUsername = rs.getString("blackUsername");
+                    var gameName = rs.getString("gameName");
+                    ChessGame chessGame = gson.fromJson(rs.getString("ChessGame"),ChessGame.class);
+                    var gameData = new GameData(gameID,whiteUsername,blackUsername,gameName,chessGame);
+                    allGameData.add(gameData);
+                }
+            }
+            return allGameData;
+        }catch(SQLException e){
+            throw new DataAccessException("Error getting data from table gameData",e);
+        }
+    }
+
+    public void addUserData(UserData u) throws DataAccessException{
+        Connection conn = getConnection();
+        try (var preparedStatement = conn.prepareStatement("INSERT INTO userData (username, password, email) VALUES(?, ?, ?)")) {
+            preparedStatement.setString(1, u.username());
+            preparedStatement.setString(2, u.password());
+            preparedStatement.setString(3, u.email());
+            preparedStatement.executeUpdate();
+        }catch (SQLException e){
+            throw new DataAccessException("Error adding UserData",e);
+        }
+    }
+
+    public void addGameData(GameData g) throws DataAccessException{
+        Connection conn = getConnection();
+        try (var preparedStatement = conn.prepareStatement("INSERT INTO gameData (gameID,whiteUsername,blackUsername,gameName,ChessGame) VALUES(?, ?, ?, ?, ?)")) {
+            preparedStatement.setInt(1, g.gameID());
+            preparedStatement.setString(2, g.whiteUsername());
+            preparedStatement.setString(3, g.blackUsername());
+            preparedStatement.setString(4, g.gameName());
+
+            var chessGame = gson.toJson(g.game());
+            preparedStatement.setString(5, chessGame);
+            preparedStatement.executeUpdate();
+        }catch (SQLException e){
+            throw new DataAccessException("Error adding GameData",e);
+        }
+    }
+
+    public void addAuthData(AuthData a) throws DataAccessException{
+        Connection conn = getConnection();
+        try (var preparedStatement = conn.prepareStatement("INSERT INTO authData (authToken,username) VALUES(?, ?)")) {
+            preparedStatement.setString(1, a.authToken());
+            preparedStatement.setString(2, a.username());
+            preparedStatement.executeUpdate();
+        }catch (SQLException e){
+            throw new DataAccessException("Error adding AuthData",e);
         }
 
     }

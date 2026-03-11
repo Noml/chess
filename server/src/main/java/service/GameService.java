@@ -20,18 +20,18 @@ public class GameService extends Service{
         aDAO = new AuthDAO(dbManager);
     }
 
-//    public CreateGameResult createGame(String authToken, String gameName) throws Exception{
-//        AuthDAO aDAO = new AuthDAO(dbManager);
-//        AuthData authData = aDAO.getAuthData(authToken);
-//        if(authData != null){
-//            int gameID = gDAO.getID();
-//            GameData gameData = new GameData(gameID,null,null,gameName,new ChessGame());
-//            gDAO.addGameData(gameData);
-//            return new CreateGameResult(gameID);
-//        }else{
-//            throw new DataAccessException("Error: unauthorized");
-//        }
-//    }
+    public CreateGameResult createGame(String authToken, String gameName) throws DataAccessException{
+        AuthDAO aDAO = new AuthDAO(dbManager);
+        AuthData authData = aDAO.getAuthData(authToken);
+        if(authData != null){
+            int gameID = gDAO.getID();
+            GameData gameData = new GameData(gameID,null,null,gameName,new ChessGame());
+            gDAO.addGameData(gameData);
+            return new CreateGameResult(gameID);
+        }else{
+            throw new DataAccessException("Error: unauthorized");
+        }
+    }
 
 //    public ArrayList<GameData> listGames(String authToken) throws Exception{
 //        AuthData authData = aDAO.getAuthData(authToken);

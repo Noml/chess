@@ -1,6 +1,7 @@
 package server.handlers;
 
 import com.google.gson.Gson;
+import dataaccess.DataAccessException;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import model.GameData;
@@ -24,7 +25,7 @@ public class GameHandler implements Handler {
         var type = context.method();
         switch (type.toString()){
             case "POST":
-//                createGame(context);
+                createGame(context);
                 break;
             case "GET":
 //                listGames(context);
@@ -97,26 +98,30 @@ public class GameHandler implements Handler {
 //        }
 //    }
 
-//    private void createGame(Context context) throws Exception{
-//        Gson gson = new Gson();
-//        String authToken = context.header("authorization");
-//        Map m = gson.fromJson(context.body(), Map.class);
-//        if(m == null || m.get("gameName") == null || authToken == null || authToken.isEmpty()){
-//            ErrorResponse r = new ErrorResponse("Error: bad request");
-//            context.status(400);
-//            context.result(gson.toJson(r));
-//            return;
-//        }
-//        String gameName = m.get("gameName").toString();
-//        try{
-//            CreateGameResult gameResult =  service.createGame(authToken,gameName);
-//            context.status(200);
-//            context.result(gson.toJson(gameResult));
-//        }catch (Exception e){
-//            context.status(401);
-//            ErrorResponse r = new ErrorResponse(e.getMessage());
-//            context.result(gson.toJson(r));
-//        }
-//    }
+    private void createGame(Context context) throws DataAccessException {
+        Gson gson = new Gson();
+        String authToken = context.header("authorization");
+        Map m = gson.fromJson(context.body(), Map.class);
+        if(m == null || m.get("gameName") == null || authToken == null || authToken.isEmpty()){
+            ErrorResponse r = new ErrorResponse("Error: bad request");
+            context.status(400);
+            context.result(gson.toJson(r));
+            return;
+        }
+        String gameName = m.get("gameName").toString();
+        try{
+            CreateGameResult gameResult =  service.createGame(authToken,gameName);
+            context.status(200);
+            context.result(gson.toJson(gameResult));
+        }catch (DataAccessException e){
+            if(e.getMessage().equals("Error: unauthorized")){
+                context.status(401);
+            }else{
+                context.status(500);
+            }
+            ErrorResponse r = new ErrorResponse(e.getMessage());
+            context.result(gson.toJson(r));
+        }
+    }
 
 }

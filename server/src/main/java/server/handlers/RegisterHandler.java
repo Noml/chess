@@ -29,18 +29,18 @@ public class RegisterHandler implements Handler {
             context.result(gson.toJson(r));
             return;
         }
-        RegisterResult result = service.register(request);
-        if (result.username().equals("Error")){
-            if(result.authToken().equals("Error: already taken")){
-                context.status(403);
-            }else{
-                context.status(500);
-            }
-            ErrorResponse r = new ErrorResponse(result.authToken());
-            context.result(gson.toJson(r));
-            return;
-        }
-        context.status(200);
-        context.result(gson.toJson(result));
+//        RegisterResult result = service.register(request);
+//        if (result.username().equals("Error")){
+//            if(result.authToken().equals("Error: already taken")){
+//                context.status(403);
+//            }else{
+//                context.status(500);
+//            }
+//            ErrorResponse r = new ErrorResponse(result.authToken());
+//            context.result(gson.toJson(r));
+//            return;
+//        }
+//        context.status(200);
+//        context.result(gson.toJson(result));
     }
 }

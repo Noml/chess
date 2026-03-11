@@ -28,21 +28,21 @@ public class LoginHandler implements Handler {
             context.result(gson.toJson(r));
             return;
         }
-        LoginResult result = service.login(request);
-
-        if (result.username().equals("Error")){
-            if(result.authToken().equals("Error: bad request")){
-                context.status(400);
-            }else if(result.authToken().equals("Error: unauthorized")) {
-                context.status(401);
-            }else{
-                context.status(500);
-            }
-            ErrorResponse r = new ErrorResponse(result.authToken());
-            context.result(gson.toJson(r));
-            return;
-        }
-        context.status(200);
-        context.result(gson.toJson(result));
+//        LoginResult result = service.login(request);
+//
+//        if (result.username().equals("Error")){
+//            if(result.authToken().equals("Error: bad request")){
+//                context.status(400);
+//            }else if(result.authToken().equals("Error: unauthorized")) {
+//                context.status(401);
+//            }else{
+//                context.status(500);
+//            }
+//            ErrorResponse r = new ErrorResponse(result.authToken());
+//            context.result(gson.toJson(r));
+//            return;
+//        }
+//        context.status(200);
+//        context.result(gson.toJson(result));
     }
 }

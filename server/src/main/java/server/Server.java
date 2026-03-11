@@ -1,5 +1,7 @@
 package server;
 
+import dataaccess.DataAccessException;
+import dataaccess.DatabaseManager;
 import io.javalin.*;
 import server.handlers.*;
 import service.Service;
@@ -8,10 +10,13 @@ public class Server {
     private Service service;
     private final Javalin javalin;
     private Database db;
+    private DatabaseManager dbManager;
 
-    public Server() {
+    public Server() throws DataAccessException {
         db = new Database();
-        service = new Service(db);
+        dbManager = new DatabaseManager();
+//        service = new Service(db);
+        service =new Service(dbManager);
         javalin = Javalin.create(config -> config.staticFiles.add("/web"));
         javalin.post("/user", new RegisterHandler(service))
                 .delete("/db", new ClearHandler(service))

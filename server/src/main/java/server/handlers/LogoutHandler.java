@@ -25,14 +25,14 @@ public class LogoutHandler implements Handler {
             context.result(gson.toJson(r));
             return;
         }
-        boolean logoutCheck = service.logout(request);
-        if(logoutCheck){
-            context.status(200);
-            context.result("{}");
-        }else{
-          context.status(401);
-          ErrorResponse r = new ErrorResponse("Error: unauthorized");
-          context.result(gson.toJson(r));
-        }
+//        boolean logoutCheck = service.logout(request);
+//        if(logoutCheck){
+//            context.status(200);
+//            context.result("{}");
+//        }else{
+//          context.status(401);
+//          ErrorResponse r = new ErrorResponse("Error: unauthorized");
+//          context.result(gson.toJson(r));
+//        }
     }
 }

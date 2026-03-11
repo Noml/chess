@@ -1,11 +1,14 @@
 package server;
 
+import dataaccess.DatabaseManager;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
 
 import java.util.ArrayList;
 import java.util.Objects;
+
+import static dataaccess.DatabaseManager.DataType.*;
 
 public class Database {
     private ArrayList<GameData> allGameData;
@@ -39,7 +42,7 @@ public class Database {
         return allGameData;
     }
 
-    public void deleteData(DataType type){
+    public void deleteData(DatabaseManager.DataType type){
         switch (type){
             case GAMEDATA -> allGameData.clear();
             case AUTHDATA -> allAuthData.clear();
@@ -47,11 +50,6 @@ public class Database {
         }
     }
 
-    public enum DataType{
-        GAMEDATA,
-        AUTHDATA,
-        USERDATA
-    }
 
     @Override
     public boolean equals(Object o) {

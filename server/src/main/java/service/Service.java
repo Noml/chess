@@ -1,16 +1,18 @@
 package service;
 
-import dataaccess.AuthDAO;
-import dataaccess.GameDAO;
-import dataaccess.UserDAO;
+import dataaccess.*;
 import server.Database;
 
 import java.util.UUID;
 
 public class Service {
     protected Database db;
+    protected DatabaseManager dbManager;
     public Service(Database db){
         this.db = db;
+    }
+    public Service(DatabaseManager dbManager){
+        this.dbManager = dbManager;
     }
 
     public static String generateAuthToken() {
@@ -18,17 +20,24 @@ public class Service {
     }
 
     public boolean clear(){
-        AuthDAO a = new AuthDAO(db);
-        GameDAO g = new GameDAO(db);
-        UserDAO u = new UserDAO(db);
+//        MemoryAuthDAO a = new MemoryAuthDAO(db);
+//        MemoryGameDAO g = new MemoryGameDAO(db);
+//        MemoryUserDAO u = new MemoryUserDAO(db);
+        UserDAO u = new UserDAO(dbManager);
+        AuthDAO a = new AuthDAO(dbManager);
+        GameDAO g = new GameDAO(dbManager);
 
-        a.clearAuthData();
-        g.clearGameData();
-        u.clearUserData();
-        return true;
+        try{
+            a.clearAuthData();
+            g.clearGameData();
+            u.clearUserData();
+            return true;
+        }catch(DataAccessException e){
+            return false;
+        }
     }
 
-    public Database getDb(){
-        return db;
+    public DatabaseManager getDb(){
+        return dbManager;
     }
 }

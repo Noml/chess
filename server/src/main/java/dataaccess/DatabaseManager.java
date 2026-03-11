@@ -22,6 +22,9 @@ public class DatabaseManager {
     public DatabaseManager() throws DataAccessException{
         createDatabase();
         createTables();
+        deleteData(DataType.USERDATA);
+        deleteData(DataType.GAMEDATA);
+        deleteData(DataType.AUTHDATA);
         gson = new Gson();
     }
     /*

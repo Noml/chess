@@ -1,6 +1,7 @@
 package server.handlers;
 
 import com.google.gson.Gson;
+import dataaccess.DataAccessException;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.jetbrains.annotations.NotNull;
@@ -29,18 +30,20 @@ public class RegisterHandler implements Handler {
             context.result(gson.toJson(r));
             return;
         }
-//        RegisterResult result = service.register(request);
-//        if (result.username().equals("Error")){
-//            if(result.authToken().equals("Error: already taken")){
-//                context.status(403);
-//            }else{
-//                context.status(500);
-//            }
-//            ErrorResponse r = new ErrorResponse(result.authToken());
-//            context.result(gson.toJson(r));
-//            return;
-//        }
-//        context.status(200);
-//        context.result(gson.toJson(result));
+        try{
+            RegisterResult result = service.register(request);
+            context.status(200);
+            context.result(gson.toJson(result));
+
+        }catch (DataAccessException e){
+            if (e.getMessage().equals("Error: already taken")){
+                    context.status(403);
+            }else{
+                context.status(500);
+            }
+            ErrorResponse r = new ErrorResponse(e.getMessage());
+            context.result(gson.toJson(r));
+        }
     }
+
 }

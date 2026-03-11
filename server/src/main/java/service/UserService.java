@@ -1,6 +1,7 @@
 package service;
 
 import dataaccess.AuthDAO;
+import dataaccess.DataAccessException;
 import model.AuthData;
 import model.UserData;
 import dataaccess.UserDAO;
@@ -17,18 +18,23 @@ public class UserService extends Service {
         aDAO = new AuthDAO(dbManager);
     }
 
-//    public RegisterResult register(RegisterRequest registerRequest) {
-//        UserData userData = registerReqToUserData(registerRequest);
-//        UserData userDataResult = uDAO.getUserByUsername(userData.username());
-//        if(userDataResult == null){
-//            uDAO.createUser(userData);
-//            AuthData authData = new AuthData(generateAuthToken(),userData.username());
-//            aDAO.addAuthData(authData);
-//            return new RegisterResult(authData.username(),authData.authToken());
-//        }else{
-//            return new RegisterResult("Error", "Error: already taken");
-//        }
-//    }
+    public RegisterResult register(RegisterRequest registerRequest) throws DataAccessException{
+        try{
+            UserData userData = registerReqToUserData(registerRequest);
+            UserData userDataResult = uDAO.getUserByUsername(userData.username());
+            if(userDataResult == null){
+                uDAO.createUser(userData);
+                AuthData authData = new AuthData(generateAuthToken(),userData.username());
+                aDAO.addAuthData(authData);
+                return new RegisterResult(authData.username(),authData.authToken());
+            }else{
+                throw new DataAccessException("Error: already taken");
+//                return new RegisterResult("Error", "Error: already taken");
+            }
+        }catch (DataAccessException e){
+            throw new DataAccessException("Error: SQL error");
+        }
+    }
 //    public LoginResult login(LoginRequest loginRequest) {
 //        UserData userData = new UserData(loginRequest.username(), loginRequest.password(), null);
 //        UserData userDataResult = uDAO.getUserByUsername(userData.username());
@@ -53,7 +59,7 @@ public class UserService extends Service {
 //        }
 //    }
 
-//    private UserData registerReqToUserData(RegisterRequest r){
-//        return new UserData(r.username(),r.password(),r.email());
-//    }
+    private UserData registerReqToUserData(RegisterRequest r){
+        return new UserData(r.username(),r.password(),r.email());
+    }
 }

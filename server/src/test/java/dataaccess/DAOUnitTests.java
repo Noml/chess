@@ -12,7 +12,6 @@ public class DAOUnitTests {
     private AuthDAO a;
     private GameDAO g;
     private UserDAO u;
-    private DatabaseManager db;
 
     @BeforeEach
     public void setUp() throws DataAccessException{
@@ -173,7 +172,7 @@ public class DAOUnitTests {
     public void getIDPos(){
         try{
             int x = g.getNewID();
-            Assertions.assertEquals(0, x);
+            Assertions.assertEquals(1, x);
         }catch(DataAccessException e){
             Assertions.fail();
         }

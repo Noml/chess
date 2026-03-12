@@ -16,6 +16,9 @@ public class GameDAO extends DAO{
     }
 
     public void addGameData(GameData gameData) throws DataAccessException{
+        if(gameData == null){
+            throw new DataAccessException("Error: null input");
+        }
         db.addGameData(gameData);
     }
 
@@ -43,6 +46,8 @@ public class GameDAO extends DAO{
                     case "WHITE":
                         g = new GameData(gameID, username, g.blackUsername(), g.gameName(), g.game());
                         break;
+                    case null, default:
+                        return null;
                 }
                 db.updateGame(g);
                 return g;

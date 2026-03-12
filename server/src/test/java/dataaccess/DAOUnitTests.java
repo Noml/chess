@@ -1,6 +1,8 @@
 package dataaccess;
 
+import chess.ChessGame;
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,11 +13,6 @@ public class DAOUnitTests {
     private GameDAO g;
     private UserDAO u;
     private DatabaseManager db;
-
-    public DAOUnitTests() throws DataAccessException{
-
-
-    }
 
     @BeforeEach
     public void setUp() throws DataAccessException{
@@ -172,9 +169,131 @@ public class DAOUnitTests {
         }
     }
 
+    @Test
+    public void getIDPos(){
+        try{
+            int x = g.getNewID();
+            Assertions.assertEquals(0, x);
+        }catch(DataAccessException e){
+            Assertions.fail();
+        }
+    }
 
+    @Test
+    public void addGamePos(){
+        try{
+            GameData gameData = new GameData(1,null,null,"g1",new ChessGame());
+            g.addGameData(gameData);
+        }catch(DataAccessException e){
+            Assertions.fail();
+        }
+    }
 
+    @Test
+    public void addGameNeg(){
+        try{
+            g.addGameData(null);
+            Assertions.fail();
+        }catch(DataAccessException e){
+            Assertions.assertEquals("Error: null input",e.getMessage());
+        }
+    }
 
+    @Test
+    public void getIDPos2(){
+        try{
+            GameData gameData = new GameData(1,null,null,"g1",new ChessGame());
+            g.addGameData(gameData);
+            int x = g.getNewID();
+            Assertions.assertNotEquals(0, x);
+        }catch(DataAccessException e){
+            Assertions.fail();
+        }
+    }
+
+    @Test
+    public void listGamesPos(){
+        try{
+            GameData gameData = new GameData(1,null,null,"g1",new ChessGame());
+            g.addGameData(gameData);
+            var x = g.getAllGameData();
+            Assertions.assertFalse(x.isEmpty());
+        }catch(DataAccessException e){
+            Assertions.fail();
+        }
+    }
+
+    @Test
+    public void listGamesNeg(){
+        try{
+            var x = g.getAllGameData();
+            Assertions.assertTrue(x.isEmpty());
+        }catch(DataAccessException e){
+            Assertions.fail();
+        }
+    }
+
+    @Test
+    public void findGamePos(){
+        try{
+            GameData gameData = new GameData(1,null,null,"g1",new ChessGame());
+            g.addGameData(gameData);
+            GameData gameData1 = g.findGame(1);
+            Assertions.assertEquals(gameData1,gameData);
+        }catch(DataAccessException e){
+            Assertions.fail();
+        }
+    }
+
+    @Test
+    public void findGameNeg(){
+        try{
+            GameData gameData1 = g.findGame(1);
+            Assertions.assertNull(gameData1);
+        }catch(DataAccessException e){
+            Assertions.fail();
+        }
+    }
+
+    @Test
+    public void addPlayerPos(){
+        try{
+            GameData gameData = new GameData(1,null,null,"g1",new ChessGame());
+            g.addGameData(gameData);
+            GameData gameData1 = g.addPlayer(1,"WHITE","Joenathan");
+            GameData expected = new GameData(1,"Joenathan",null,"g1",new ChessGame());
+            Assertions.assertEquals(expected, gameData1);
+        }catch(DataAccessException e){
+            Assertions.fail();
+        }
+    }
+
+    @Test
+    public void addPlayerNeg(){
+        try{
+            GameData gameData = new GameData(1,null,null,"g1",new ChessGame());
+            g.addGameData(gameData);
+            GameData gameData1 = g.addPlayer(1,"white","Joenathan");
+            Assertions.assertNull(gameData1);
+        }catch(DataAccessException e){
+            Assertions.fail();
+        }
+    }
+
+    @Test
+    public void clearGameData(){
+        try{
+            GameData gameData = new GameData(1,null,null,"g1",new ChessGame());
+            g.addGameData(gameData);
+            var x = g.getAllGameData();
+            Assertions.assertFalse(x.isEmpty());
+            g.clearGameData();
+            x = g.getAllGameData();
+            Assertions.assertTrue(x.isEmpty());
+        }catch(DataAccessException e){
+            Assertions.fail();
+        }
+    }
     //try{}catch(DataAccessException e){}
 
 }

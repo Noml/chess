@@ -1,6 +1,7 @@
 package dataaccess;
 
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
 import server.Database;
 
 public class UserDAO extends DAO{
@@ -11,7 +12,10 @@ public class UserDAO extends DAO{
         db.deleteData(DatabaseManager.DataType.USERDATA);
     }
     public void createUser(UserData userData) throws DataAccessException{
-        db.addUserData(userData);
+        String clearTextPassword = userData.password();
+        String hashedPassword = BCrypt.hashpw(clearTextPassword, BCrypt.gensalt());
+        UserData secure = new UserData(userData.username(),hashedPassword,userData.email());
+        db.addUserData(secure);
     }
 
     public UserData getUserByUsername(String username) throws DataAccessException{

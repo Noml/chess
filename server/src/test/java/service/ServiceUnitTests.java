@@ -7,7 +7,6 @@ import model.GameData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import server.Database;
 import service.requests.LoginRequest;
 import service.requests.LogoutRequest;
 import service.requests.RegisterRequest;
@@ -57,7 +56,7 @@ public class ServiceUnitTests {
             RegisterRequest  req = new RegisterRequest("Joenathan","1234","na@gmail.com");
             s.register(req);
             RegisterRequest req2 = new RegisterRequest("Joenathan","12345","na2@gmail.com");
-            RegisterResult result2 = s.register(req2);
+            s.register(req2);
             Assertions.fail();
         }catch(DataAccessException e){
             Assertions.assertEquals("Error: already taken",e.getMessage());
@@ -89,7 +88,7 @@ public class ServiceUnitTests {
         try {
             s.register(req);
             LoginRequest lReq = new LoginRequest("Joenathan", "123456789");
-            LoginResult lRes = s.login(lReq);
+            s.login(lReq);
             Assertions.fail();
         } catch (Exception e) {
         Assertions.assertEquals("Error: unauthorized", e.getMessage());
@@ -112,7 +111,7 @@ public class ServiceUnitTests {
     }
 
     @Test
-    public void logoutInexistantUser(){
+    public void logoutNonexistentUser(){
         UserService s = new UserService(service);
         LogoutRequest logoutRequest = new LogoutRequest("fakeAuth");
         try{

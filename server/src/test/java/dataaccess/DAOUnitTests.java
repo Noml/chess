@@ -1,5 +1,6 @@
 package dataaccess;
 
+import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,6 +82,92 @@ public class DAOUnitTests {
             u.createUser(userData);
             u.clearUserData();
         }catch(DataAccessException e){
+            Assertions.fail();
+        }
+    }
+
+    @Test
+    public void addAuthPos(){
+        AuthData authData = new AuthData("demoAuthToken", "Joenathan");
+        try{
+            a.addAuthData(authData);
+        } catch (DataAccessException e) {
+            Assertions.fail();
+        }
+    }
+
+    @Test
+    public void addAuthNeg(){
+        try{
+            a.addAuthData(null);
+            Assertions.fail();
+        } catch (DataAccessException e) {
+            Assertions.assertEquals("Error: null input",e.getMessage());
+        }
+    }
+
+    @Test
+    public void getAuthPos(){
+        AuthData authData = new AuthData("demoAuthToken", "Joenathan");
+        try{
+            a.addAuthData(authData);
+            AuthData res = a.getAuthData(authData.authToken());
+            Assertions.assertEquals(authData,res);
+        } catch (DataAccessException e) {
+            Assertions.fail();
+        }
+    }
+
+    @Test
+    public void getAuthNeg(){
+        AuthData authData = new AuthData("demoAuthToken", "Joenathan");
+        try{
+            a.addAuthData(authData);
+            AuthData res = a.getAuthData("fakeAuthToken");
+            Assertions.assertNull(res);
+        } catch (DataAccessException e) {
+            Assertions.fail();
+        }
+    }
+
+    @Test
+    public void deleteAuthPos(){
+        AuthData authData = new AuthData("demoAuthToken", "Joenathan");
+        try{
+            a.addAuthData(authData);
+            AuthData res = a.getAuthData(authData.authToken());
+            Assertions.assertNotNull(res);
+            a.deleteAuth(authData);
+            res = a.getAuthData(authData.authToken());
+            Assertions.assertNull(res);
+        } catch (DataAccessException e) {
+            Assertions.fail();
+        }
+    }
+
+    @Test
+    public void deleteAuthNeg(){
+        AuthData authData = new AuthData("demoAuthToken", "Joenathan");
+        try{
+            a.addAuthData(authData);
+            a.deleteAuth(null);
+            Assertions.fail();
+        } catch (DataAccessException e) {
+            Assertions.assertEquals("Error: null input",e.getMessage());
+        }
+    }
+
+    @Test
+    public void clearAllAuthData(){
+        AuthData authData = new AuthData("demoAuthToken", "Joenathan");
+        try{
+            a.addAuthData(authData);
+            AuthData res = a.getAuthData(authData.authToken());
+            Assertions.assertNotNull(res);
+            a.clearAuthData();
+            res = a.getAuthData(authData.authToken());
+            Assertions.assertNull(res);
+        } catch (DataAccessException e) {
             Assertions.fail();
         }
     }

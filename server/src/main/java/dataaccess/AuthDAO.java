@@ -15,6 +15,9 @@ public class AuthDAO extends DAO{
     }
 
     public void addAuthData(AuthData authData) throws DataAccessException{
+        if(authData == null){
+            throw new DataAccessException("Error: null input");
+        }
         db.addAuthData(authData);
     }
 
@@ -29,6 +32,9 @@ public class AuthDAO extends DAO{
     }
 
     public void deleteAuth(AuthData authDataToDelete) throws DataAccessException{
+        if(authDataToDelete == null){
+            throw new DataAccessException("Error: null input");
+        }
         db.deleteData(authDataToDelete.authToken());
     }
 }

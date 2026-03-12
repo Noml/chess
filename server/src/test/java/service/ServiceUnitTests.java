@@ -223,8 +223,12 @@ public class ServiceUnitTests {
 
     @Test
     public void clearNoData(){
-        boolean b = service.clear();
-        Assertions.assertTrue(b);
+        try {
+            boolean b = service.clear();
+            Assertions.assertTrue(b);
+        }catch(DataAccessException e){
+            Assertions.fail();
+        }
     }
 
     @Test

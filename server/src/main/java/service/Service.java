@@ -19,7 +19,7 @@ public class Service {
         return UUID.randomUUID().toString();
     }
 
-    public boolean clear(){
+    public boolean clear() throws DataAccessException{
 //        MemoryAuthDAO a = new MemoryAuthDAO(db);
 //        MemoryGameDAO g = new MemoryGameDAO(db);
 //        MemoryUserDAO u = new MemoryUserDAO(db);
@@ -33,7 +33,7 @@ public class Service {
             u.clearUserData();
             return true;
         }catch(DataAccessException e){
-            return false;
+            throw new DataAccessException("Error: "+e.getMessage());
         }
     }
 

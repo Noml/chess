@@ -9,17 +9,14 @@ import service.Service;
 public class Server {
     private Service service;
     private final Javalin javalin;
-    private Database db;
     private DatabaseManager dbManager;
 
     public Server() {
-//        db = new Database();
         try{
             dbManager = new DatabaseManager();
         }catch(DataAccessException e){
             System.out.println(e.getMessage());
         }
-//        service = new Service(db);
         service = new Service(dbManager);
         javalin = Javalin.create(config -> config.staticFiles.add("/web"));
         javalin.post("/user", new RegisterHandler(service))

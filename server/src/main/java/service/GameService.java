@@ -21,47 +21,68 @@ public class GameService extends Service{
     }
 
     public CreateGameResult createGame(String authToken, String gameName) throws DataAccessException{
-        AuthDAO aDAO = new AuthDAO(dbManager);
-        AuthData authData = aDAO.getAuthData(authToken);
-        if(authData != null){
-            int gameID = gDAO.getNewID();
-            GameData gameData = new GameData(gameID,null,null,gameName,new ChessGame());
-            gDAO.addGameData(gameData);
-            return new CreateGameResult(gameID);
-        }else{
-            throw new DataAccessException("Error: unauthorized");
+        try{
+            AuthDAO aDAO = new AuthDAO(dbManager);
+            AuthData authData = aDAO.getAuthData(authToken);
+            if(authData != null){
+                int gameID = gDAO.getNewID();
+                GameData gameData = new GameData(gameID,null,null,gameName,new ChessGame());
+                gDAO.addGameData(gameData);
+                return new CreateGameResult(gameID);
+            }else{
+                throw new DataAccessException("Error: unauthorized");
+            }
+        }catch (DataAccessException e){
+            if(e.getMessage().equals("Error unauthorized")){
+                throw e;
+            }
+            throw new DataAccessException("Error: "+e.getMessage());
         }
     }
 
     public ArrayList<GameData> listGames(String authToken) throws DataAccessException{
-        AuthData authData = aDAO.getAuthData(authToken);
-        if(authData != null){
-            return gDAO.getAllGameData();
-        }else{
-            throw new DataAccessException("Error: unauthorized");
+        try {
+            AuthData authData = aDAO.getAuthData(authToken);
+            if (authData != null) {
+                return gDAO.getAllGameData();
+            } else {
+                throw new DataAccessException("Error: unauthorized");
+            }
+        }catch (DataAccessException e){
+            if(e.getMessage().equals("Error: unauthorized")){
+                throw e;
+            }
+            throw new DataAccessException("Error: "+e.getMessage());
         }
     }
 
     public GameData joinGame(String authToken, String playerColor, int gameID) throws DataAccessException{
-        AuthData authData = aDAO.getAuthData(authToken);
-        if(authData != null){
-            GameData gameData = gDAO.findGame(gameID);
-            switch (playerColor){
-                case "BLACK":
-                    if(gameData.blackUsername()!= null){
-                        throw new DataAccessException("Error: already taken");
-                    }
-                    break;
-                case "WHITE":
-                    if(gameData.whiteUsername() != null){
-                        throw new DataAccessException("Error: already taken");
-                    }
-                    break;
+        try{
+            AuthData authData = aDAO.getAuthData(authToken);
+            if(authData != null){
+                GameData gameData = gDAO.findGame(gameID);
+                switch (playerColor){
+                    case "BLACK":
+                        if(gameData.blackUsername()!= null){
+                            throw new DataAccessException("Error: already taken");
+                        }
+                        break;
+                    case "WHITE":
+                        if(gameData.whiteUsername() != null){
+                            throw new DataAccessException("Error: already taken");
+                        }
+                        break;
+                }
+                gameData = gDAO.addPlayer(gameID, playerColor, authData.username());
+                return gameData;
+            }else{
+                throw new DataAccessException("Error: unauthorized");
             }
-            gameData = gDAO.addPlayer(gameID, playerColor, authData.username());
-            return gameData;
-        }else{
-            throw new DataAccessException("Error: unauthorized");
+        }catch(DataAccessException e){
+            if(e.getMessage().startsWith("Error")){
+                throw e;
+            }
+            throw new DataAccessException("Error: "+e.getMessage());
         }
 
     }

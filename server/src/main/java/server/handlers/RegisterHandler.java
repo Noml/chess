@@ -19,7 +19,7 @@ public class RegisterHandler implements Handler {
     }
 
     @Override
-    public void handle(@NotNull Context context) throws Exception {
+    public void handle(@NotNull Context context){
         Gson gson = new Gson();
         RegisterRequest request = gson.fromJson(context.body(),RegisterRequest.class);
         if(request.email() == null || request.password() == null ||request.username() == null ||
@@ -36,13 +36,7 @@ public class RegisterHandler implements Handler {
             context.result(gson.toJson(result));
 
         }catch (DataAccessException e){
-            if (e.getMessage().equals("Error: already taken")){
-                    context.status(403);
-            }else{
-                context.status(500);
-            }
-            ErrorResponse r = new ErrorResponse(e.getMessage());
-            context.result(gson.toJson(r));
+            new ErrorHandler(e,context);
         }
     }
 

@@ -19,7 +19,7 @@ public class LoginHandler implements Handler {
     }
 
     @Override
-    public void handle(@NotNull Context context) throws Exception {
+    public void handle(@NotNull Context context){
         Gson gson = new Gson();
         LoginRequest request = gson.fromJson(context.body(),LoginRequest.class);
         if(request.password() == null ||request.username() == null ||
@@ -34,15 +34,7 @@ public class LoginHandler implements Handler {
             context.status(200);
             context.result(gson.toJson(result));
         } catch (DataAccessException e) {
-            if (e.getMessage().equals("Error: bad request")){
-                context.status(400);
-            }else if(e.getMessage().equals("Error: unauthorized")){
-                context.status(401);
-            }else{
-                context.status(500);
-            }
-            ErrorResponse r = new ErrorResponse(e.getMessage());
-            context.result(gson.toJson(r));
+            new ErrorHandler(e,context);
         }
 
     }

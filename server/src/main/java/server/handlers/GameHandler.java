@@ -21,7 +21,7 @@ public class GameHandler implements Handler {
         this.service = new GameService(service);
     }
     @Override
-    public void handle(@NotNull Context context) throws Exception {
+    public void handle(@NotNull Context context) {
         var type = context.method();
         switch (type.toString()){
             case "POST":
@@ -40,7 +40,7 @@ public class GameHandler implements Handler {
 
     }
 
-    private void joinGame(Context context) throws Exception{
+    private void joinGame(Context context){
         Gson gson = new Gson();
         String authToken = context.header("authorization");
         record JoinRequest(String playerColor, int gameID){}
@@ -61,18 +61,8 @@ public class GameHandler implements Handler {
             context.status(200);
             context.result(gson.toJson(j));
 
-        }catch(Exception e){
-            if(e.getMessage().equals("Error: bad request")){
-                context.status(400);
-            }else if(e.getMessage().equals("Error: unauthorized")){
-                context.status(401);
-            }else if(e.getMessage().equals("Error: already taken")){
-                context.status(403);
-            }else{
-                context.status(500);
-            }
-            ErrorResponse r = new ErrorResponse(e.getMessage());
-            context.result(gson.toJson(r));
+        }catch(DataAccessException e){
+            new ErrorHandler(e,context);
         }
 
 
@@ -93,18 +83,12 @@ public class GameHandler implements Handler {
             context.status(200);
             context.result(gson.toJson(l));
 
-        }catch(Exception e){
-            if(e.getMessage().equals("Error: unauthorized")){
-                context.status(401);
-            }else{
-                context.status(500);
-            }
-            ErrorResponse r = new ErrorResponse(e.getMessage());
-            context.result(gson.toJson(r));
+        }catch(DataAccessException e){
+            new ErrorHandler(e,context);
         }
     }
 
-    private void createGame(Context context) throws DataAccessException {
+    private void createGame(Context context) {
         Gson gson = new Gson();
         String authToken = context.header("authorization");
         Map m = gson.fromJson(context.body(), Map.class);
@@ -120,13 +104,7 @@ public class GameHandler implements Handler {
             context.status(200);
             context.result(gson.toJson(gameResult));
         }catch (DataAccessException e){
-            if(e.getMessage().equals("Error: unauthorized")){
-                context.status(401);
-            }else{
-                context.status(500);
-            }
-            ErrorResponse r = new ErrorResponse(e.getMessage());
-            context.result(gson.toJson(r));
+            new ErrorHandler(e,context);
         }
     }
 

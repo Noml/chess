@@ -6,9 +6,6 @@ import model.AuthData;
 import model.GameData;
 import model.UserData;
 
-import org.junit.jupiter.api.Assertions;
-import server.Database;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -228,7 +225,8 @@ public class DatabaseManager {
 
     public void addGameData(GameData g) throws DataAccessException{
         Connection conn = getConnection();
-        try (var preparedStatement = conn.prepareStatement("INSERT INTO gameData (gameID,whiteUsername,blackUsername,gameName,ChessGame) VALUES(?, ?, ?, ?, ?)")) {
+        String s = "INSERT INTO gameData (gameID,whiteUsername,blackUsername,gameName,ChessGame) VALUES(?, ?, ?, ?, ?)";
+        try (var preparedStatement = conn.prepareStatement(s)) {
             preparedStatement.setInt(1, g.gameID());
             preparedStatement.setString(2, g.whiteUsername());
             preparedStatement.setString(3, g.blackUsername());

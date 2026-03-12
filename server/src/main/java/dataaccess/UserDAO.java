@@ -2,7 +2,6 @@ package dataaccess;
 
 import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
-import server.Database;
 
 public class UserDAO extends DAO{
     public UserDAO(DatabaseManager db){

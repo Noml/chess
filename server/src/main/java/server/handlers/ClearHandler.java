@@ -10,14 +10,13 @@ import service.results.ErrorResponse;
 
 public class ClearHandler implements Handler {
     private Service service;
-    private Gson gson;
 
     public ClearHandler(Service service){
         this.service = service;
     }
     @Override
     public void handle(@NotNull Context context) {
-        gson = new Gson();
+        Gson gson = new Gson();
         try{
             service.clear();
             context.status(200);

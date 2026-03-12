@@ -17,7 +17,7 @@ public class LogoutHandler implements Handler {
         this.service = new UserService(service);
     }
     @Override
-    public void handle(@NotNull Context context) throws Exception {
+    public void handle(@NotNull Context context){
         Gson gson = new Gson();
         LogoutRequest request = new LogoutRequest(context.header("authorization"));
         if(request.authToken() == null || request.authToken().isEmpty()){//invalid input
@@ -31,13 +31,7 @@ public class LogoutHandler implements Handler {
             context.status(200);
             context.result("{}");
         }catch(DataAccessException e){
-            if(e.getMessage().equals("Error: unauthorized")){
-                context.status(401);
-            }else{
-                context.status(500);
-            }
-            ErrorResponse r = new ErrorResponse(e.getMessage());
-            context.result(gson.toJson(r));
+            new ErrorHandler(e,context);
         }
     }
 }

@@ -9,8 +9,6 @@ import org.mindrot.jbcrypt.BCrypt;
 import service.requests.*;
 import service.results.*;
 
-import javax.xml.crypto.Data;
-
 public class UserService extends Service {
     private UserDAO uDAO;
     private AuthDAO aDAO;
@@ -32,7 +30,6 @@ public class UserService extends Service {
                 return new RegisterResult(authData.username(),authData.authToken());
             }else{
                 throw new DataAccessException("Error: already taken");
-//                return new RegisterResult("Error", "Error: already taken");
             }
         }catch (DataAccessException e){
             if(e.getMessage().equals("Error: already taken")){

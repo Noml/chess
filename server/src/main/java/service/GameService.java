@@ -33,7 +33,7 @@ public class GameService extends Service{
                 throw new DataAccessException("Error: unauthorized");
             }
         }catch (DataAccessException e){
-            if(e.getMessage().equals("Error unauthorized")){
+            if(e.getMessage().equals("Error: unauthorized")){
                 throw e;
             }
             throw new DataAccessException("Error: "+e.getMessage());

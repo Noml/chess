@@ -9,7 +9,7 @@ import service.Service;
 public class Server {
     private Service service;
     private final Javalin javalin;
-    private DatabaseManager dbManager;
+    private static DatabaseManager dbManager;
 
     public Server() {
         try{

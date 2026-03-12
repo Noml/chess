@@ -44,7 +44,6 @@ public class GameDAO extends DAO{
                         g = new GameData(gameID, username, g.blackUsername(), g.gameName(), g.game());
                         break;
                 }
-//                db.addGameData(g);
                 db.updateGame(g);
                 return g;
             }

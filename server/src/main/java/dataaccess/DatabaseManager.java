@@ -6,10 +6,12 @@ import model.AuthData;
 import model.GameData;
 import model.UserData;
 
+import org.junit.jupiter.api.Assertions;
 import server.Database;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Properties;
 
 public class DatabaseManager {
@@ -266,9 +268,44 @@ public class DatabaseManager {
         }
     }
 
+    public void updateGame(GameData g) throws DataAccessException{
+        Connection conn = getConnection();
+        var statement = "UPDATE gameData SET whiteUsername = ?, blackUsername = ?, ChessGame = ? WHERE gameID = ?";
+        try(var prepStatement = conn.prepareStatement(statement)){
+            prepStatement.setString(1, g.whiteUsername());
+            prepStatement.setString(2, g.blackUsername());
+            prepStatement.setString(3, gson.toJson(g.game()));
+            prepStatement.setInt(4, g.gameID());
+            prepStatement.executeUpdate();
+        }catch (SQLException e){
+            throw new DataAccessException("Error updating GameData");
+        }
+    }
+
     public enum DataType{
         GAMEDATA,
         AUTHDATA,
         USERDATA
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DatabaseManager that = (DatabaseManager) o;
+        try{
+            boolean a = Objects.equals(getAllGameData(),that.getAllGameData());
+            boolean b = Objects.equals(getAllAuthData(),that.getAllAuthData());
+            boolean c = Objects.equals(getAllUserData(),that.getAllUserData());
+            return a && b && c;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(gson);
     }
 }

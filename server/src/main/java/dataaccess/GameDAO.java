@@ -1,7 +1,6 @@
 package dataaccess;
 
 import model.GameData;
-import server.Database;
 
 import java.util.ArrayList;
 
@@ -12,7 +11,7 @@ public class GameDAO extends DAO{
     public void clearGameData() throws DataAccessException {
         db.deleteData(DatabaseManager.DataType.GAMEDATA);
     }
-    public int getID() throws DataAccessException{
+    public int getNewID() throws DataAccessException{
         return db.getAllGameData().size()+1;
     }
 
@@ -45,15 +44,11 @@ public class GameDAO extends DAO{
                         g = new GameData(gameID, username, g.blackUsername(), g.gameName(), g.game());
                         break;
                 }
-                updateGame(g);
+//                db.addGameData(g);
+                db.updateGame(g);
                 return g;
             }
         }
         return null;
-    }
-
-    public void updateGame(GameData d) throws DataAccessException{
-        var allGameData = db.getAllGameData();
-        allGameData.set(d.gameID()-1,d);
     }
 }

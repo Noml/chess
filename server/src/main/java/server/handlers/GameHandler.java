@@ -28,10 +28,10 @@ public class GameHandler implements Handler {
                 createGame(context);
                 break;
             case "GET":
-//                listGames(context);
+                listGames(context);
                 break;
             case "PUT":
-//                joinGame(context);
+                joinGame(context);
                 break;
             case null, default:
                 context.status(404);
@@ -40,63 +40,69 @@ public class GameHandler implements Handler {
 
     }
 
-//    private void joinGame(Context context) throws Exception{
-//        Gson gson = new Gson();
-//        String authToken = context.header("authorization");
-//        record JoinRequest(String playerColor, int gameID){}
-//        JoinRequest joinRequest  = gson.fromJson(context.body(), JoinRequest.class);
-//        if(joinRequest == null || joinRequest.playerColor == null ||
-//                !(joinRequest.playerColor.equals("WHITE") || joinRequest.playerColor.equals("BLACK")) ||
-//                 authToken == null || authToken.isEmpty() || joinRequest.gameID <1){
-//            ErrorResponse r = new ErrorResponse("Error: bad request");
-//            context.status(400);
-//            context.result(gson.toJson(r));
-//            return;
-//        }
-//        String playerColor = joinRequest.playerColor;
-//        int gameID = joinRequest.gameID;
-//        try {
-//            record JoinGameResult(GameData gameData) { }
-//            JoinGameResult j = new JoinGameResult(service.joinGame(authToken, playerColor, gameID));
-//            context.status(200);
-//            context.result(gson.toJson(j));
-//
-//        }catch(Exception e){
-//            if(e.getMessage().equals("Error: bad request")){
-//                context.status(400);
-//            }else if(e.getMessage().equals("Error: unauthorized")){
-//                context.status(401);
-//            }else if(e.getMessage().equals("Error: already taken")){
-//                context.status(403);
-//            }
-//            ErrorResponse r = new ErrorResponse(e.getMessage());
-//            context.result(gson.toJson(r));
-//        }
-//
-//
-//
-//    }
+    private void joinGame(Context context) throws Exception{
+        Gson gson = new Gson();
+        String authToken = context.header("authorization");
+        record JoinRequest(String playerColor, int gameID){}
+        JoinRequest joinRequest  = gson.fromJson(context.body(), JoinRequest.class);
+        if(joinRequest == null || joinRequest.playerColor == null ||
+                !(joinRequest.playerColor.equals("WHITE") || joinRequest.playerColor.equals("BLACK")) ||
+                 authToken == null || authToken.isEmpty() || joinRequest.gameID <1){
+            ErrorResponse r = new ErrorResponse("Error: bad request");
+            context.status(400);
+            context.result(gson.toJson(r));
+            return;
+        }
+        String playerColor = joinRequest.playerColor;
+        int gameID = joinRequest.gameID;
+        try {
+            record JoinGameResult(GameData gameData) { }
+            JoinGameResult j = new JoinGameResult(service.joinGame(authToken, playerColor, gameID));
+            context.status(200);
+            context.result(gson.toJson(j));
 
-//    private void listGames(Context context) throws Exception{
-//        Gson gson = new Gson();
-//        String authToken = context.header("authorization");
-//        if(authToken == null){
-//            context.status(401);
-//            ErrorResponse r = new ErrorResponse("Error: unauthorized");
-//            context.result(gson.toJson(r));
-//        }
-//        try {
-//            record ListedGames(ArrayList<GameData> games) { }
-//            ListedGames l = new ListedGames(service.listGames(authToken));
-//            context.status(200);
-//            context.result(gson.toJson(l));
-//
-//        }catch(Exception e){
-//            context.status(401);
-//            ErrorResponse r = new ErrorResponse(e.getMessage());
-//            context.result(gson.toJson(r));
-//        }
-//    }
+        }catch(Exception e){
+            if(e.getMessage().equals("Error: bad request")){
+                context.status(400);
+            }else if(e.getMessage().equals("Error: unauthorized")){
+                context.status(401);
+            }else if(e.getMessage().equals("Error: already taken")){
+                context.status(403);
+            }else{
+                context.status(500);
+            }
+            ErrorResponse r = new ErrorResponse(e.getMessage());
+            context.result(gson.toJson(r));
+        }
+
+
+
+    }
+
+    private void listGames(Context context){
+        Gson gson = new Gson();
+        String authToken = context.header("authorization");
+        if(authToken == null){
+            context.status(401);
+            ErrorResponse r = new ErrorResponse("Error: unauthorized");
+            context.result(gson.toJson(r));
+        }
+        try {
+            record ListedGames(ArrayList<GameData> games) { }
+            ListedGames l = new ListedGames(service.listGames(authToken));
+            context.status(200);
+            context.result(gson.toJson(l));
+
+        }catch(Exception e){
+            if(e.getMessage().equals("Error: unauthorized")){
+                context.status(401);
+            }else{
+                context.status(500);
+            }
+            ErrorResponse r = new ErrorResponse(e.getMessage());
+            context.result(gson.toJson(r));
+        }
+    }
 
     private void createGame(Context context) throws DataAccessException {
         Gson gson = new Gson();

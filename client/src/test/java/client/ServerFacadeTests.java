@@ -3,6 +3,7 @@ package client;
 import org.junit.jupiter.api.*;
 import server.Server;
 import service.requests.LoginRequest;
+import service.requests.LogoutRequest;
 import service.requests.RegisterRequest;
 import service.results.LoginResult;
 import service.results.RegisterResult;
@@ -81,6 +82,16 @@ public class ServerFacadeTests {
             Assertions.fail();
         }catch (Exception e){
             Assertions.assertEquals("Error: unauthorized",e.getMessage());
+        }
+    }
+
+    @Test
+    public void logoutPos(){
+        try{
+            RegisterResult result = facade.register(new RegisterRequest(nameEx,"password1","email1"));
+            facade.logout(new LogoutRequest(result.authToken()));
+        }catch (Exception e){
+            Assertions.fail();
         }
     }
 }

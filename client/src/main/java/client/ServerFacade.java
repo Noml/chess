@@ -74,7 +74,11 @@ public class ServerFacade {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
                 .method(method, makeRequestBody(body));
+
         if (body != null) {
+            if(body.getClass() == LogoutRequest.class){
+                request.setHeader("authorization",((LogoutRequest) body).authToken());
+            }
             request.setHeader("Content-Type", "application/json");
         }
         return request.build();

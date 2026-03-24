@@ -8,6 +8,7 @@ import model.GameData;
 import org.jetbrains.annotations.NotNull;
 import service.GameService;
 import service.Service;
+import service.requests.JoinRequest;
 import service.results.CreateGameResult;
 import service.results.ErrorResponse;
 
@@ -43,18 +44,17 @@ public class GameHandler implements Handler {
     private void joinGame(Context context){
         Gson gson = new Gson();
         String authToken = context.header("authorization");
-        record JoinRequest(String playerColor, int gameID){}
         JoinRequest joinRequest  = gson.fromJson(context.body(), JoinRequest.class);
-        if(joinRequest == null || joinRequest.playerColor == null ||
-                !(joinRequest.playerColor.equals("WHITE") || joinRequest.playerColor.equals("BLACK")) ||
-                 authToken == null || authToken.isEmpty() || joinRequest.gameID <1){
+        if(joinRequest == null || joinRequest.playerColor() == null ||
+                !(joinRequest.playerColor().equals("WHITE") || joinRequest.playerColor().equals("BLACK")) ||
+                 authToken == null || authToken.isEmpty() || joinRequest.gameID() <1){
             ErrorResponse r = new ErrorResponse("Error: bad request");
             context.status(400);
             context.result(gson.toJson(r));
             return;
         }
-        String playerColor = joinRequest.playerColor;
-        int gameID = joinRequest.gameID;
+        String playerColor = joinRequest.playerColor();
+        int gameID = joinRequest.gameID();
         try {
             record JoinGameResult(GameData gameData) { }
             JoinGameResult j = new JoinGameResult(service.joinGame(authToken, playerColor, gameID));
@@ -82,7 +82,6 @@ public class GameHandler implements Handler {
             ListedGames l = new ListedGames(service.listGames(authToken));
             context.status(200);
             context.result(gson.toJson(l));
-
         }catch(DataAccessException e){
             new ErrorHandler(e,context);
         }

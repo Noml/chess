@@ -15,6 +15,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();
@@ -64,7 +65,7 @@ public class ServerFacade {
     }
 
     public void clear() throws Exception{
-        HttpRequest builtReq = buildRequest("DELTE","/db",null);
+        HttpRequest builtReq = buildRequest("DELETE","/db",null);
         var response = sendRequest(builtReq);
         handleResponse(response,null);
     }
@@ -93,10 +94,10 @@ public class ServerFacade {
 
     private <T> T handleResponse(HttpResponse<String> response, Class<T> responseClass) throws Exception {
         var status = response.statusCode();
-        if (status == 200) {
+        if (status != 200) {
             var body = response.body();
             if (body != null) {
-                throw new Exception(new Gson().fromJson(body,String.class));
+                throw new Exception(new Gson().fromJson(body, HashMap.class).get("message").toString());
             }
             throw new Exception("other failure: " + status);
         }

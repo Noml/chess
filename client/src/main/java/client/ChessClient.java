@@ -20,13 +20,14 @@ public class ChessClient {
     }
 
     public void run() {
-        System.out.println("Welcome to chess!");
-        System.out.print(help());
         Scanner scanner = new Scanner(System.in);
         switch(state){
             case PRELOGIN:
+                System.out.println("Welcome to chess!");
+                System.out.print(help());
                 preloginRepl(scanner);
             case POSTLOGIN:
+                System.out.print(help());
                 postloginRepl(scanner);
         }
     }
@@ -66,6 +67,9 @@ public class ChessClient {
             }catch (Throwable e){
                 System.out.println(e.toString());
             }
+            if(state == State.POSTLOGIN){
+                run();
+            }
         }
         System.out.println("Thank you for playing chess! \n***Quitting***");
     }
@@ -80,7 +84,11 @@ public class ChessClient {
             }catch (Throwable e){
                 System.out.println(e.toString());
             }
+            if(state == State.PRELOGIN){
+                run();
+            }
         }
+
     }
 
     public String preloginEval(String input){
@@ -115,6 +123,7 @@ public class ChessClient {
             LoginResult result = server.login(new LoginRequest(username,password));
             authToken = result.authToken();
             password = "";
+            state = State.POSTLOGIN;
             return "You logged on as: "+result.username();
         }catch(Exception e){
             if(e.getMessage().equals("Error: unauthorized")){

@@ -1,9 +1,10 @@
 package client;
 
 
-import java.util.Arrays;
-import java.util.Scanner;
+import service.requests.LoginRequest;
+import service.results.LoginResult;
 
+import java.util.Scanner;
 import static ui.EscapeSequences.*;
 
 public class ChessClient {
@@ -12,13 +13,14 @@ public class ChessClient {
     }
     private ServerFacade server;
     private State state = State.PRELOGIN;
+    private String authToken;
 
     public ChessClient(String serverUrl){
         server = new ServerFacade(serverUrl);
     }
 
     public void run() {
-        System.out.print("Welcome to chess!");
+        System.out.println("Welcome to chess!");
         System.out.print(help());
         Scanner scanner = new Scanner(System.in);
         switch(state){
@@ -31,7 +33,7 @@ public class ChessClient {
 
     public String help(){
         String help;
-        System.out.print("Enter one of the following valid commands:");
+        System.out.println("Enter one of the following valid commands:");
         if(state == State.PRELOGIN){
             help = """
                      - help: display this message
@@ -58,11 +60,14 @@ public class ChessClient {
             String input = scanner.nextLine();
             try{
                 result = preloginEval(input);
-                System.out.print(SET_TEXT_COLOR_BLUE + result);
+                if(result!= "quit"){
+                    System.out.println(result);
+                }
             }catch (Throwable e){
-                System.out.print(e.toString());
+                System.out.println(e.toString());
             }
         }
+        System.out.println("Thank you for playing chess! \n***Quitting***");
     }
 
     public void postloginRepl(Scanner scanner){
@@ -71,19 +76,19 @@ public class ChessClient {
             String input = scanner.nextLine();
             try{
                 result = postloginEval(input);
-                System.out.print(SET_TEXT_COLOR_BLUE + result);
+                System.out.println(result);
             }catch (Throwable e){
-                System.out.print(e.toString());
+                System.out.println(e.toString());
             }
         }
     }
 
     public String preloginEval(String input){
         try {
-            String[] tokens = input.toLowerCase().split(" ");
+            String inputLower = input.toLowerCase();
             String cmd = "help";
-            if(tokens.length > 0){
-                cmd = tokens[0];
+            if(!inputLower.isEmpty()){
+                cmd = inputLower;
             }
             return switch (cmd) {
                 case "login" -> login();
@@ -97,8 +102,29 @@ public class ChessClient {
     }
 
     public String login(){
-
-        return "";
+        String password;
+        System.out.println("Enter your username: ");
+        Scanner scan = new Scanner(System.in);
+        String username = scan.nextLine();
+        if(username.equals("quit")){
+            return username;
+        }
+        System.out.println("Enter your password: ");
+        password = scan.nextLine();
+        try{
+            LoginResult result = server.login(new LoginRequest(username,password));
+            authToken = result.authToken();
+            password = "";
+            return "You logged on as: "+result.username();
+        }catch(Exception e){
+            if(e.getMessage().equals("Error: unauthorized")){
+                System.out.println("No user was found with those credentials. Please try again or type quit for the username.\n");
+            }
+            else{
+                System.out.println("    Error: "+e.toString());
+            }
+            return login();
+        }
     }
 
     public String register(){

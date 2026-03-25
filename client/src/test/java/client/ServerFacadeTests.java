@@ -28,7 +28,8 @@ public class ServerFacadeTests {
     }
 
     @AfterAll
-    static void stopServer() {
+    static void stopServer() throws Exception {
+        facade.clear();
         server.stop();
     }
 
@@ -172,7 +173,6 @@ public class ServerFacadeTests {
         }
     }
 
-
     @Test
     public void listGamesNeg(){
         try{
@@ -185,4 +185,5 @@ public class ServerFacadeTests {
             Assertions.assertEquals("Error: unauthorized",e.getMessage());
         }
     }
+
 }

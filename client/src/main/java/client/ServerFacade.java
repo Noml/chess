@@ -20,6 +20,8 @@ import java.util.HashMap;
 public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();
     private final String serverUrl;
+    record Request(String authToken, String gameName){}
+    record JoinGameResult(GameData gameData) {}
 
     public ServerFacade(String serverUrl) {
         this.serverUrl = serverUrl;
@@ -43,22 +45,31 @@ public class ServerFacade {
         handleResponse(response,null);
     }
 
-    public GameData joinGame(JoinRequest request) throws Exception{
-        HttpRequest builtReq = buildRequest("PUT","/game",request);
+    public JoinGameResult joinGame(JoinRequest request, String authToken) throws Exception{
+        var HTTPReq = HttpRequest.newBuilder()
+                .uri(URI.create(serverUrl + "/game"))
+                .method("PUT", makeRequestBody(request));
+        HTTPReq.setHeader("authorization",authToken);
+        HTTPReq.setHeader("Content-Type", "application/json");
+        HttpRequest builtReq = HTTPReq.build();
         var response = sendRequest(builtReq);
-        return handleResponse(response,GameData.class);
+        return handleResponse(response,JoinGameResult.class);
     }
 
     public ArrayList<GameData> listGames(String authToken) throws Exception{
         record Temp(String authorization){}
         record ListedGames(ArrayList<GameData> games) {}
-        HttpRequest builtReq = buildRequest("GET","/game",new Temp(authToken));
+        var HTTPReq = HttpRequest.newBuilder()
+                .uri(URI.create(serverUrl + "/game"))
+                .method("GET", makeRequestBody(new Temp(authToken)));
+        HTTPReq.setHeader("authorization",authToken);
+        HTTPReq.setHeader("Content-Type", "application/json");
+        HttpRequest builtReq = HTTPReq.build();
         var response = sendRequest(builtReq);
         return handleResponse(response,ListedGames.class).games();
     }
 
     public CreateGameResult createGame(String authToken, String gameName) throws Exception{
-        record Request(String authToken, String gameName){}
         HttpRequest builtReq = buildRequest("POST","/game",new Request(authToken,gameName));
         var response = sendRequest(builtReq);
         return handleResponse(response,CreateGameResult.class);
@@ -74,10 +85,11 @@ public class ServerFacade {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
                 .method(method, makeRequestBody(body));
-
         if (body != null) {
             if(body.getClass() == LogoutRequest.class){
                 request.setHeader("authorization",((LogoutRequest) body).authToken());
+            } else if (body.getClass() == Request.class) {
+                request.setHeader("authorization",((Request) body).authToken());
             }
             request.setHeader("Content-Type", "application/json");
         }

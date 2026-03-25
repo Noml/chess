@@ -1,10 +1,13 @@
 package client;
 
+import model.GameData;
 import org.junit.jupiter.api.*;
 import server.Server;
+import service.requests.JoinRequest;
 import service.requests.LoginRequest;
 import service.requests.LogoutRequest;
 import service.requests.RegisterRequest;
+import service.results.CreateGameResult;
 import service.results.LoginResult;
 import service.results.RegisterResult;
 
@@ -90,8 +93,96 @@ public class ServerFacadeTests {
         try{
             RegisterResult result = facade.register(new RegisterRequest(nameEx,"password1","email1"));
             facade.logout(new LogoutRequest(result.authToken()));
-        }catch (Exception e){
+        }catch (Exception e) {
             Assertions.fail();
+        }
+    }
+
+    @Test
+    public void logoutNeg(){
+        try{
+            RegisterResult result = facade.register(new RegisterRequest(nameEx,"password1","email1"));
+            facade.logout(new LogoutRequest(result.authToken()+"invalid"));
+            Assertions.fail();
+        }catch (Exception e) {
+            Assertions.assertEquals("Error: unauthorized",e.getMessage());
+        }
+    }
+
+    @Test
+    public void createGamePos(){
+        try{
+            RegisterResult result = facade.register(new RegisterRequest(nameEx,"password1","email1"));
+            CreateGameResult result1 = facade.createGame(result.authToken(),"Game1");
+            Assertions.assertEquals(1,result1.gameID());
+        }catch (Exception e) {
+            Assertions.fail();
+        }
+    }
+
+    @Test
+    public void createGameNeg(){
+        try{
+            RegisterResult result = facade.register(new RegisterRequest(nameEx,"password1","email1"));
+            CreateGameResult result1 = facade.createGame(result.authToken()+"invalid","Game1");
+            Assertions.fail();
+        }catch (Exception e) {
+            Assertions.assertEquals("Error: unauthorized",e.getMessage());
+        }
+    }
+
+
+
+    @Test
+    public void joinGamePos(){
+        try{
+            RegisterResult result = facade.register(new RegisterRequest(nameEx,"password1","email1"));
+            CreateGameResult result1 = facade.createGame(result.authToken(),"Game1");
+            GameData result2 = facade.joinGame(new JoinRequest("WHITE",result1.gameID()),result.authToken()).gameData();
+            Assertions.assertEquals(1, result2.gameID());
+            Assertions.assertEquals(result2.whiteUsername(),nameEx);
+            Assertions.assertNull(result2.blackUsername());
+            Assertions.assertEquals("Game1", result2.gameName());
+        }catch (Exception e) {
+            Assertions.fail();
+        }
+    }
+    @Test
+    public void joinGameNeg(){
+        try{
+            RegisterResult result = facade.register(new RegisterRequest(nameEx,"password1","email1"));
+            CreateGameResult result1 = facade.createGame(result.authToken(),"Game1");
+            GameData result2 = facade.joinGame(new JoinRequest("WHITE",result1.gameID()),result.authToken()+"invalid").gameData();
+            Assertions.fail();
+        }catch (Exception e) {
+            Assertions.assertEquals("Error: unauthorized",e.getMessage());
+        }
+    }
+
+    @Test
+    public void listGamesPos(){
+        try{
+            RegisterResult result = facade.register(new RegisterRequest(nameEx,"password1","email1"));
+            CreateGameResult result1 = facade.createGame(result.authToken(),"Game1");
+            GameData result2 = facade.joinGame(new JoinRequest("WHITE",result1.gameID()),result.authToken()).gameData();
+            var result3 = facade.listGames(result.authToken());
+            Assertions.assertFalse(result3.isEmpty());
+        }catch (Exception e) {
+            Assertions.fail();
+        }
+    }
+
+
+    @Test
+    public void listGamesNeg(){
+        try{
+            RegisterResult result = facade.register(new RegisterRequest(nameEx,"password1","email1"));
+            CreateGameResult result1 = facade.createGame(result.authToken(),"Game1");
+            GameData result2 = facade.joinGame(new JoinRequest("WHITE",result1.gameID()),result.authToken()).gameData();
+            var result3 = facade.listGames(result.authToken()+"invalid");
+            Assertions.fail();
+        }catch (Exception e) {
+            Assertions.assertEquals("Error: unauthorized",e.getMessage());
         }
     }
 }

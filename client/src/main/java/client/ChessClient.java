@@ -29,6 +29,29 @@ public class ChessClient {
         }
     }
 
+    public String help(){
+        String help;
+        System.out.print("Enter one of the following valid commands:");
+        if(state == State.PRELOGIN){
+            help = """
+                     - help: display this message
+                     - quit: exit the program
+                     - login: enter credentials to do more actions
+                     - register: create an account
+                    """;
+        }else{
+            help = """
+                     - help: display this message
+                     - logout: end session, not program
+                     - create game: create a new chess game
+                     - list games: list all chess games
+                     - play game: join a chess game
+                     - observe game: observe a chess game
+                    """;
+        }
+        return help;
+    }
+
     public void preloginRepl(Scanner scanner){
         var result = "";
         while (!result.equals("quit")) {
@@ -55,18 +78,12 @@ public class ChessClient {
         }
     }
 
-    public String postloginEval(String input){
-        return "";
-    }
-
     public String preloginEval(String input){
         try {
             String[] tokens = input.toLowerCase().split(" ");
-            String cmd;
+            String cmd = "help";
             if(tokens.length > 0){
                 cmd = tokens[0];
-            }else{
-                cmd = "help";
             }
             return switch (cmd) {
                 case "login" -> login();
@@ -89,27 +106,43 @@ public class ChessClient {
         return "";
     }
 
-    public String help(){
-        String help;
-        System.out.print("Enter one of the following valid commands:");
-        if(state == State.PRELOGIN){
-            help = """
-                     - help: display this message
-                     - quit: exit the program
-                     - login: enter credentials to do more actions
-                     - register: create an account
-                    """;
-        }else{
-            help = """
-                     - help: display this message
-                     - logout: end session, not program
-                     - create game: create a new chess game
-                     - list games: list all chess games
-                     - play game: join a chess game
-                     - observe game: observe a chess game
-                    """;
+    public String postloginEval(String input){
+        try {
+            String inputLower = input.toLowerCase();
+            String cmd = "help";
+            if(!inputLower.isEmpty()){
+                cmd = inputLower;
+            }
+            return switch (cmd) {
+                case "logout" -> logout();
+                case "create game" -> createGame();
+                case "list games" -> listGames();
+                case "play game" -> playGame();
+                case "observe game" -> observeGame();
+                default -> help();
+            };
+        } catch (Exception ex) {
+            return ex.getMessage();
         }
-        return help;
     }
 
+    private String logout() {
+        return "";
+    }
+
+    private String createGame() {
+        return "";
+    }
+
+    private String listGames() {
+        return "";
+    }
+
+    private String playGame() {
+        return "";
+    }
+
+    private String observeGame() {
+        return "";
+    }
 }

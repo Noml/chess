@@ -2,7 +2,9 @@ package client;
 
 
 import service.requests.LoginRequest;
+import service.requests.RegisterRequest;
 import service.results.LoginResult;
+import service.results.RegisterResult;
 
 import java.util.Scanner;
 import static ui.EscapeSequences.*;
@@ -32,9 +34,9 @@ public class ChessClient {
         }
     }
 
-    public String help(){
+    private String help(){
         String help;
-        System.out.println("Enter one of the following valid commands:");
+        System.out.println("Enter one of the following commands:");
         if(state == State.PRELOGIN){
             help = """
                      - help: display this message
@@ -55,7 +57,7 @@ public class ChessClient {
         return help;
     }
 
-    public void preloginRepl(Scanner scanner){
+    private void preloginRepl(Scanner scanner){
         var result = "";
         while (!result.equals("quit")) {
             String input = scanner.nextLine();
@@ -68,13 +70,14 @@ public class ChessClient {
                 System.out.println(e.toString());
             }
             if(state == State.POSTLOGIN){
+                System.out.println("Entering postlogin UI");
                 run();
             }
         }
         System.out.println("Thank you for playing chess! \n***Quitting***");
     }
 
-    public void postloginRepl(Scanner scanner){
+    private void postloginRepl(Scanner scanner){
         var result = "";
         while (!result.equals("logout")) {
             String input = scanner.nextLine();
@@ -85,13 +88,14 @@ public class ChessClient {
                 System.out.println(e.toString());
             }
             if(state == State.PRELOGIN){
+                System.out.println("Entering prelogin UI");
                 run();
             }
         }
 
     }
 
-    public String preloginEval(String input){
+    private String preloginEval(String input){
         try {
             String inputLower = input.toLowerCase();
             String cmd = "help";
@@ -109,7 +113,7 @@ public class ChessClient {
         }
     }
 
-    public String login(){
+    private String login(){
         String password;
         System.out.println("Enter your username: ");
         Scanner scan = new Scanner(System.in);
@@ -136,12 +140,38 @@ public class ChessClient {
         }
     }
 
-    public String register(){
-
-        return "";
+    private String register(){
+        String password;
+        System.out.print("Enter a username: ");
+        Scanner scan = new Scanner(System.in);
+        String username = scan.nextLine();
+        if(username.equals("quit")){
+            return username;
+        }
+        System.out.print("Enter a password: ");
+        password = scan.nextLine();
+        System.out.print("Enter an email address: ");
+        String email = scan.nextLine();
+        try{
+            RegisterResult result = server.register(new RegisterRequest(username,password,email));
+            authToken = result.authToken();
+            password = "";
+            state = State.POSTLOGIN;
+            return "You registered with the username: "+result.username()+", your password, and the email: "+email;
+        }catch(Exception e){
+            if(e.getMessage().equals("Error: bad request")){
+                System.out.println("You were unable to register. Please try again or type quit for the username to exit.\n");
+            }else if(e.getMessage().equals("Error: already taken")){
+                System.out.println("The username "+username+" is already taken. Please try again or type quit for the username to exit.\n");
+            }
+            else{
+                System.out.println("    Error: "+e.toString());
+            }
+            return login();
+        }
     }
 
-    public String postloginEval(String input){
+    private String postloginEval(String input){
         try {
             String inputLower = input.toLowerCase();
             String cmd = "help";

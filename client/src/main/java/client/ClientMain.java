@@ -13,5 +13,6 @@ public class ClientMain {
         System.out.println("Server started on "+ serverUrl);
         System.out.println("Welcome to chess!");
         new ChessClient(serverUrl).run();
+        System.out.println("Thank you for playing chess! \n***Quitting***");
     }
 }

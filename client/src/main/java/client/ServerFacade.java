@@ -2,14 +2,8 @@ package client;
 
 import com.google.gson.Gson;
 import model.GameData;
-import service.requests.JoinRequest;
-import service.requests.LoginRequest;
-import service.requests.LogoutRequest;
-import service.requests.RegisterRequest;
-import service.results.CreateGameResult;
-import service.results.LoginResult;
-import service.results.RegisterResult;
-
+import client.results.*;
+import client.requests.*;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -20,8 +14,6 @@ import java.util.HashMap;
 public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();
     private final String serverUrl;
-    record Request(String authToken, String gameName){}
-    record JoinGameResult(GameData gameData) {}
 
     public ServerFacade(String serverUrl) {
         this.serverUrl = serverUrl;

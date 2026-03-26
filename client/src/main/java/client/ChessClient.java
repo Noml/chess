@@ -1,17 +1,11 @@
 package client;
 
-
 import chess.ChessBoard;
 import chess.ChessPiece;
 import chess.ChessPosition;
 import model.GameData;
-import service.requests.JoinRequest;
-import service.requests.LoginRequest;
-import service.requests.LogoutRequest;
-import service.requests.RegisterRequest;
-import service.results.CreateGameResult;
-import service.results.LoginResult;
-import service.results.RegisterResult;
+import client.results.*;
+import client.requests.*;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;

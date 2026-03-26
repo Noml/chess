@@ -3,14 +3,8 @@ package client;
 import model.GameData;
 import org.junit.jupiter.api.*;
 import server.Server;
-import service.requests.JoinRequest;
-import service.requests.LoginRequest;
-import service.requests.LogoutRequest;
-import service.requests.RegisterRequest;
-import service.results.CreateGameResult;
-import service.results.LoginResult;
-import service.results.RegisterResult;
-
+import client.results.*;
+import client.requests.*;
 
 public class ServerFacadeTests {
 
@@ -50,7 +44,7 @@ public class ServerFacadeTests {
     @Test
     public void registerPos(){
         try{
-            RegisterResult result = facade.register(new RegisterRequest(nameEx,"password1","email1"));
+            facade.register(new RegisterRequest(nameEx,"password1","email1"));
         }catch (Exception e){
             Assertions.fail();
         }
@@ -59,7 +53,7 @@ public class ServerFacadeTests {
     @Test
     public void registerNeg(){
         try{
-            RegisterResult result = facade.register(new RegisterRequest(nameEx,null,"email1"));
+            facade.register(new RegisterRequest(nameEx,null,"email1"));
             Assertions.fail();
         }catch (Exception e){
             Assertions.assertEquals("Error: bad request", e.getMessage());
@@ -69,7 +63,7 @@ public class ServerFacadeTests {
     @Test
     public void loginPos(){
         try{
-            RegisterResult result = facade.register(new RegisterRequest(nameEx,"password1","email1"));
+            facade.register(new RegisterRequest(nameEx,"password1","email1"));
             LoginResult result1 = facade.login(new LoginRequest(nameEx,"password1"));
             Assertions.assertEquals(nameEx,result1.username());
             Assertions.assertEquals(String.class,result1.authToken().getClass());
@@ -81,8 +75,8 @@ public class ServerFacadeTests {
     @Test
     public void loginNeg(){
         try{
-            RegisterResult result = facade.register(new RegisterRequest(nameEx,"password1","email1"));
-            LoginResult result1 = facade.login(new LoginRequest(nameEx+"invalid","password1"));
+            facade.register(new RegisterRequest(nameEx,"password1","email1"));
+            facade.login(new LoginRequest(nameEx+"invalid","password1"));
             Assertions.fail();
         }catch (Exception e){
             Assertions.assertEquals("Error: unauthorized",e.getMessage());
@@ -125,7 +119,7 @@ public class ServerFacadeTests {
     public void createGameNeg(){
         try{
             RegisterResult result = facade.register(new RegisterRequest(nameEx,"password1","email1"));
-            CreateGameResult result1 = facade.createGame(result.authToken()+"invalid","Game1");
+            facade.createGame(result.authToken()+"invalid","Game1");
             Assertions.fail();
         }catch (Exception e) {
             Assertions.assertEquals("Error: unauthorized",e.getMessage());
@@ -153,7 +147,7 @@ public class ServerFacadeTests {
         try{
             RegisterResult result = facade.register(new RegisterRequest(nameEx,"password1","email1"));
             CreateGameResult result1 = facade.createGame(result.authToken(),"Game1");
-            GameData result2 = facade.joinGame(new JoinRequest("WHITE",result1.gameID()),result.authToken()+"invalid").gameData();
+            facade.joinGame(new JoinRequest("WHITE",result1.gameID()),result.authToken()+"invalid");
             Assertions.fail();
         }catch (Exception e) {
             Assertions.assertEquals("Error: unauthorized",e.getMessage());
@@ -165,7 +159,7 @@ public class ServerFacadeTests {
         try{
             RegisterResult result = facade.register(new RegisterRequest(nameEx,"password1","email1"));
             CreateGameResult result1 = facade.createGame(result.authToken(),"Game1");
-            GameData result2 = facade.joinGame(new JoinRequest("WHITE",result1.gameID()),result.authToken()).gameData();
+            facade.joinGame(new JoinRequest("WHITE",result1.gameID()),result.authToken());
             var result3 = facade.listGames(result.authToken());
             Assertions.assertFalse(result3.isEmpty());
         }catch (Exception e) {
@@ -178,8 +172,8 @@ public class ServerFacadeTests {
         try{
             RegisterResult result = facade.register(new RegisterRequest(nameEx,"password1","email1"));
             CreateGameResult result1 = facade.createGame(result.authToken(),"Game1");
-            GameData result2 = facade.joinGame(new JoinRequest("WHITE",result1.gameID()),result.authToken()).gameData();
-            var result3 = facade.listGames(result.authToken()+"invalid");
+            facade.joinGame(new JoinRequest("WHITE",result1.gameID()),result.authToken());
+            facade.listGames(result.authToken()+"invalid");
             Assertions.fail();
         }catch (Exception e) {
             Assertions.assertEquals("Error: unauthorized",e.getMessage());

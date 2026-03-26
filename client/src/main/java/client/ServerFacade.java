@@ -38,12 +38,12 @@ public class ServerFacade {
     }
 
     public JoinGameResult joinGame(JoinRequest request, String authToken) throws Exception{
-        var HTTPReq = HttpRequest.newBuilder()
+        var HttpReq = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + "/game"))
                 .method("PUT", makeRequestBody(request));
-        HTTPReq.setHeader("authorization",authToken);
-        HTTPReq.setHeader("Content-Type", "application/json");
-        HttpRequest builtReq = HTTPReq.build();
+        HttpReq.setHeader("authorization",authToken);
+        HttpReq.setHeader("Content-Type", "application/json");
+        HttpRequest builtReq = HttpReq.build();
         var response = sendRequest(builtReq);
         return handleResponse(response,JoinGameResult.class);
     }
@@ -51,12 +51,12 @@ public class ServerFacade {
     public ArrayList<GameData> listGames(String authToken) throws Exception{
         record Temp(String authorization){}
         record ListedGames(ArrayList<GameData> games) {}
-        var HTTPReq = HttpRequest.newBuilder()
+        var HttpReq = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + "/game"))
                 .method("GET", makeRequestBody(new Temp(authToken)));
-        HTTPReq.setHeader("authorization",authToken);
-        HTTPReq.setHeader("Content-Type", "application/json");
-        HttpRequest builtReq = HTTPReq.build();
+        HttpReq.setHeader("authorization",authToken);
+        HttpReq.setHeader("Content-Type", "application/json");
+        HttpRequest builtReq = HttpReq.build();
         var response = sendRequest(builtReq);
         return handleResponse(response,ListedGames.class).games();
     }

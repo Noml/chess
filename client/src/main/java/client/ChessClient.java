@@ -17,11 +17,10 @@ public class ChessClient {
     enum State{
         PRELOGIN,POSTLOGIN
     }
-    private ServerFacade server;
+    private final ServerFacade server;
     private State state;
     private String authToken;
     private boolean admin = false;
-    private int gameIDToObserve;
 
     public ChessClient(String serverUrl){
         server = new ServerFacade(serverUrl);
@@ -123,18 +122,13 @@ public class ChessClient {
             if(!inputLower.isEmpty()){
                 cmd = inputLower;
             }
-            switch (cmd) {
-                case "login":
-                    return login(scanner);
-                case "register":
-                    return register(scanner);
-                case "quit":
-                    return "quit";
-                case "help":
-                    return "";
-                default:
-                    return "Invalid input, try again";
-            }
+            return switch (cmd) {
+                case "login" -> login(scanner);
+                case "register" -> register(scanner);
+                case "quit" -> "quit";
+                case "help" -> "";
+                default -> "Invalid input, try again";
+            };
         } catch (Exception ex) {
             return ex.getMessage();
         }
@@ -210,25 +204,20 @@ public class ChessClient {
             if(!inputLower.isEmpty()){
                 cmd = inputLower;
             }
-            switch (cmd) {
-                case "logout":
-                    return logout();
-                case "create game":
-                    return createGame(scanner);
-                case "list games":
-                    return listGames();
-                case "play game":
-                    return playGame(scanner);
-                case "observe game":
-                    return observeGame(scanner);
-                case "help":
-                    return "";
-                default:
-                    if(admin && cmd.equals("clear")){
-                        return clear();
+            return switch (cmd) {
+                case "logout" -> logout();
+                case "create game" -> createGame(scanner);
+                case "list games" -> listGames();
+                case "play game" -> playGame(scanner);
+                case "observe game" -> observeGame(scanner);
+                case "help" -> "";
+                default -> {
+                    if (admin && cmd.equals("clear")) {
+                        yield clear();
                     }
-                    return "Invalid input, try again";
-            }
+                    yield "Invalid input, try again";
+                }
+            };
         } catch (Exception ex) {
             return ex.getMessage();
         }
@@ -339,7 +328,7 @@ public class ChessClient {
         System.out.print("Enter the number of the game that you want to observe: ");
         String input = scan.nextLine();
         if(input.equals("stop")){
-            return "";
+            return "Stop entered";
         }
         try{
             int number = Integer.parseInt(input);
@@ -350,7 +339,7 @@ public class ChessClient {
                             "Enter \"stop\" to exit to the menu.");
                 }
                 GameData gameToObserve = games.get(number-1);
-                gameIDToObserve = gameToObserve.gameID();
+//                int gameIDToObserve = gameToObserve.gameID();
                 System.out.println(gameToObserve.whiteUsername()+" is playing as WHITE");
                 System.out.println(gameToObserve.blackUsername()+" is playing as BLACK");
                 drawBoard(gameToObserve.game().getBoard(), null);

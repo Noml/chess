@@ -139,7 +139,7 @@ public class ChessClient {
         System.out.print("Enter your username: ");
         String username = scan.nextLine();
         if(username.equals("STOP")){
-            return username;
+            return "";
         }
         System.out.print("Enter your password: ");
         password = scan.nextLine();
@@ -154,10 +154,10 @@ public class ChessClient {
         }catch(Exception e){
             if(e.getMessage().equals("Error: unauthorized")){
                 System.out.println("No user was found with those credentials. " +
-                        "Please try again or type \"STOP\" for the username to exit.\n");
+                        "Please try again or type \"STOP\" for the username to exit to the menu.\n");
             } else if (e.getMessage().equals("Error: bad request")){
                 System.out.println("Either the username or the password was entered incorrectly." +
-                        " Please try again or type \"STOP\" for the username to exit.\n");
+                        " Please try again or type \"STOP\" for the username to exit to the menu.\n");
             } else{
                 System.out.println("    Error: "+e.getMessage());
             }
@@ -170,7 +170,7 @@ public class ChessClient {
         System.out.print("Enter a username: ");
         String username = scan.nextLine();
         if(username.equals("STOP")){
-            return username;
+            return "";
         }
         System.out.print("Enter a password: ");
         password = scan.nextLine();
@@ -186,9 +186,9 @@ public class ChessClient {
             return "You registered with the username: "+result.username()+", your password, and the email: "+email;
         }catch(Exception e){
             if(e.getMessage().equals("Error: bad request")){
-                System.out.println("You were unable to register. Please try again or type \"STOP\" for the username to exit.\n");
+                System.out.println("You were unable to register. Please try again or type \"STOP\" for the username to exit to the menu.\n");
             }else if(e.getMessage().equals("Error: already taken")){
-                System.out.println("The username "+username+" is already taken. Please try again or type \"STOP\" for the username to exit.\n");
+                System.out.println("The username "+username+" is already taken. Please try again or type \"STOP\" for the username to exit to the menu.\n");
             }
             else{
                 System.out.println("    Error: "+e.getMessage());
@@ -244,7 +244,7 @@ public class ChessClient {
             server.createGame(authToken,gameName);
         } catch (Exception e) {
             if(e.getMessage().equals("Error: bad request")){
-                System.out.println("You were unable to create the game. Please try again or type quit for the username to exit.\n");
+                System.out.println("You were unable to create the game. Please try again or type quit for the username to exit to the menu.\n");
             }
             else{
                 System.out.println("    Error: "+e.getMessage());
@@ -279,7 +279,7 @@ public class ChessClient {
     private String playGame(Scanner scan) {
         System.out.print("Enter the number of the game that you want to join: ");
         String input = scan.nextLine();
-        if(input.equals("stop")){
+        if(input.equals("STOP")){
             return "";
         }
         try{
@@ -288,7 +288,7 @@ public class ChessClient {
                 ArrayList<GameData> games = server.listGames(authToken);
                 if(number > games.size() || number <= 0){
                     throw new Exception("The input number was not a valid game number. Please try again. " +
-                            "Enter \"stop\" to exit to the menu.");
+                            "Enter \"STOP\" to exit to the menu.");
                 }
                 GameData gameToJoin = games.get(number-1);
                 System.out.print("Enter the color that you want to claim: ");
@@ -308,7 +308,7 @@ public class ChessClient {
                     return "You would normally be ablet to play, but we're still working on improving the UI to allow that.";
                 }catch(Exception e){
                     if(e.getMessage().equals("Error: already taken")){
-                        System.out.println("This player has already been taken. Please try again. Enter \"stop\" to exit to the menu.");
+                        System.out.println("This player has already been taken. Please try again. Enter \"STOP\" to exit to the menu.");
                         playGame(scan);
                     }
                 }
@@ -318,7 +318,7 @@ public class ChessClient {
             }
         } catch (NumberFormatException e) {
             System.out.print("The input number was not a valid game number. ");
-            System.out.println("Please try again. Enter \"stop\" to exit to the menu.");
+            System.out.println("Please try again. Enter \"STOP\" to exit to the menu.");
             playGame(scan);
         }
         return "";
@@ -327,8 +327,8 @@ public class ChessClient {
     private String observeGame(Scanner scan) {
         System.out.print("Enter the number of the game that you want to observe: ");
         String input = scan.nextLine();
-        if(input.equals("stop")){
-            return "Stop entered";
+        if(input.equals("STOP")){
+            return "";
         }
         try{
             int number = Integer.parseInt(input);
@@ -336,7 +336,7 @@ public class ChessClient {
                 ArrayList<GameData> games = server.listGames(authToken);
                 if(number > games.size() || number <= 0){
                     throw new Exception("The input number was not a valid game number. Please try again. " +
-                            "Enter \"stop\" to exit to the menu.");
+                            "Enter \"STOP\" to exit to the menu.");
                 }
                 GameData gameToObserve = games.get(number-1);
 //                int gameIDToObserve = gameToObserve.gameID();
@@ -349,7 +349,7 @@ public class ChessClient {
             }
         } catch (NumberFormatException e) {
             System.out.print("The input number was not a valid game number. ");
-            System.out.println("Please try again. Enter \"stop\" to exit to the menu.");
+            System.out.println("Please try again. Enter \"STOP\" to exit to the menu.");
             playGame(scan);
         }
         return "";

@@ -138,7 +138,7 @@ public class ChessClient {
         String password;
         System.out.print("Enter your username: ");
         String username = scan.nextLine();
-        if(username.equals("quit")){
+        if(username.equals("STOP")){
             return username;
         }
         System.out.print("Enter your password: ");
@@ -154,10 +154,10 @@ public class ChessClient {
         }catch(Exception e){
             if(e.getMessage().equals("Error: unauthorized")){
                 System.out.println("No user was found with those credentials. " +
-                        "Please try again or type quit for the username to exit.\n");
+                        "Please try again or type \"STOP\" for the username to exit.\n");
             } else if (e.getMessage().equals("Error: bad request")){
                 System.out.println("Either the username or the password was entered incorrectly." +
-                        " Please try again or type quit for the username to exit \n");
+                        " Please try again or type \"STOP\" for the username to exit.\n");
             } else{
                 System.out.println("    Error: "+e.getMessage());
             }
@@ -169,7 +169,7 @@ public class ChessClient {
         String password;
         System.out.print("Enter a username: ");
         String username = scan.nextLine();
-        if(username.equals("quit")){
+        if(username.equals("STOP")){
             return username;
         }
         System.out.print("Enter a password: ");
@@ -186,9 +186,9 @@ public class ChessClient {
             return "You registered with the username: "+result.username()+", your password, and the email: "+email;
         }catch(Exception e){
             if(e.getMessage().equals("Error: bad request")){
-                System.out.println("You were unable to register. Please try again or type quit for the username to exit.\n");
+                System.out.println("You were unable to register. Please try again or type \"STOP\" for the username to exit.\n");
             }else if(e.getMessage().equals("Error: already taken")){
-                System.out.println("The username "+username+" is already taken. Please try again or type quit for the username to exit.\n");
+                System.out.println("The username "+username+" is already taken. Please try again or type \"STOP\" for the username to exit.\n");
             }
             else{
                 System.out.println("    Error: "+e.getMessage());

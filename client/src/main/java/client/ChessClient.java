@@ -380,12 +380,15 @@ public class ChessClient {
         }
         if(color.equals("WHITE")){
             board = flip(board);
+        }else{
+            board = flipForBlack(board);
         }
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
-        String[] header = {" ","h","g","f","e","d","c","b","a"," "};
+        String[] header = {" ","a","b","c","d","e","f","g","h"," "};
         String[] sides = {"1", "2", "3", "4", "5", "6", "7", "8"};
         if(color.equals("BLACK")){
             sides =new String[]{"8", "7", "6", "5", "4", "3", "2", "1"};
+            header = new String[]{" ","h","g","f","e","d","c","b","a"," "};
         }
         for (int i = 0; i < 10; i++) {
             printPiece(out, SET_BG_COLOR_LIGHT_GREY,header[i]);
@@ -436,12 +439,21 @@ public class ChessClient {
         }
         out.print("\n");
     }
+    private ChessBoard flipForBlack(ChessBoard board){
+        ChessBoard finalBoard = new ChessBoard();
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                finalBoard.addPiece(new ChessPosition(i+1,8-j),board.getPiece(new ChessPosition(i+1,j+1)));
+            }
+        }
+        return finalBoard;
+    }
 
     private ChessBoard flip(ChessBoard board) {
         ChessBoard finalBoard = new ChessBoard();
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
-                finalBoard.addPiece(new ChessPosition(8-i,8-j),board.getPiece(new ChessPosition(i+1,j+1)));
+                finalBoard.addPiece(new ChessPosition(8-i,j+1),board.getPiece(new ChessPosition(i+1,j+1)));
             }
         }
         return finalBoard;

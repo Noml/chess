@@ -2,6 +2,7 @@ package client;
 
 
 import service.requests.LoginRequest;
+import service.requests.LogoutRequest;
 import service.requests.RegisterRequest;
 import service.results.LoginResult;
 import service.results.RegisterResult;
@@ -16,6 +17,7 @@ public class ChessClient {
     private ServerFacade server;
     private State state = State.PRELOGIN;
     private String authToken;
+    private boolean admin = false;
 
     public ChessClient(String serverUrl){
         server = new ServerFacade(serverUrl);
@@ -25,12 +27,13 @@ public class ChessClient {
         Scanner scanner = new Scanner(System.in);
         switch(state){
             case PRELOGIN:
-                System.out.println("Welcome to chess!");
                 System.out.print(help());
                 preloginRepl(scanner);
+                break;
             case POSTLOGIN:
                 System.out.print(help());
                 postloginRepl(scanner);
+                break;
         }
     }
 
@@ -60,6 +63,12 @@ public class ChessClient {
     private void preloginRepl(Scanner scanner){
         var result = "";
         while (!result.equals("quit")) {
+            if(state == State.POSTLOGIN){
+                clearScreen();
+                System.out.println("Entering postlogin UI");
+                run();
+            }
+            System.out.print(">>> ");
             String input = scanner.nextLine();
             try{
                 result = preloginEval(input);
@@ -69,27 +78,26 @@ public class ChessClient {
             }catch (Throwable e){
                 System.out.println(e.toString());
             }
-            if(state == State.POSTLOGIN){
-                System.out.println("Entering postlogin UI");
-                run();
-            }
         }
+        state = State.PRELOGIN;
         System.out.println("Thank you for playing chess! \n***Quitting***");
     }
 
     private void postloginRepl(Scanner scanner){
         var result = "";
         while (!result.equals("logout")) {
+            if(state == State.PRELOGIN){
+                clearScreen();
+                System.out.println("Entering prelogin UI");
+                run();
+            }
+            System.out.print(">>> ");
             String input = scanner.nextLine();
             try{
                 result = postloginEval(input);
                 System.out.println(result);
             }catch (Throwable e){
                 System.out.println(e.toString());
-            }
-            if(state == State.PRELOGIN){
-                System.out.println("Entering prelogin UI");
-                run();
             }
         }
 
@@ -98,16 +106,23 @@ public class ChessClient {
     private String preloginEval(String input){
         try {
             String inputLower = input.toLowerCase();
-            String cmd = "help";
+            String cmd = "";
             if(!inputLower.isEmpty()){
                 cmd = inputLower;
             }
-            return switch (cmd) {
-                case "login" -> login();
-                case "register" -> register();
-                case "quit" -> "quit";
-                default -> help();
-            };
+            switch (cmd) {
+                case "login":
+                    return login();
+                case "register":
+                    return register();
+                case "quit":
+                    return "quit";
+                case "help":
+                    return help();
+                default:
+                    System.out.println("Invalid input, try again");
+                    return help();
+            }
         } catch (Exception ex) {
             return ex.getMessage();
         }
@@ -115,23 +130,26 @@ public class ChessClient {
 
     private String login(){
         String password;
-        System.out.println("Enter your username: ");
+        System.out.print("Enter your username: ");
         Scanner scan = new Scanner(System.in);
         String username = scan.nextLine();
         if(username.equals("quit")){
             return username;
         }
-        System.out.println("Enter your password: ");
+        System.out.print("Enter your password: ");
         password = scan.nextLine();
         try{
             LoginResult result = server.login(new LoginRequest(username,password));
             authToken = result.authToken();
             password = "";
             state = State.POSTLOGIN;
+            if(username.equals("admin")){
+                admin = true;
+            }
             return "You logged on as: "+result.username();
         }catch(Exception e){
             if(e.getMessage().equals("Error: unauthorized")){
-                System.out.println("No user was found with those credentials. Please try again or type quit for the username.\n");
+                System.out.println("No user was found with those credentials. Please try again or type quit for the username to exit.\n");
             }
             else{
                 System.out.println("    Error: "+e.toString());
@@ -157,6 +175,9 @@ public class ChessClient {
             authToken = result.authToken();
             password = "";
             state = State.POSTLOGIN;
+            if(username.equals("admin")){
+                admin = true;
+            }
             return "You registered with the username: "+result.username()+", your password, and the email: "+email;
         }catch(Exception e){
             if(e.getMessage().equals("Error: bad request")){
@@ -178,20 +199,42 @@ public class ChessClient {
             if(!inputLower.isEmpty()){
                 cmd = inputLower;
             }
-            return switch (cmd) {
-                case "logout" -> logout();
-                case "create game" -> createGame();
-                case "list games" -> listGames();
-                case "play game" -> playGame();
-                case "observe game" -> observeGame();
-                default -> help();
-            };
+            switch (cmd) {
+                case "logout":
+                    return logout();
+                case "create game":
+                    return createGame();
+                case "list games":
+                    return listGames();
+                case "play game":
+                    return playGame();
+                case "observe game":
+                    return observeGame();
+                case "help":
+                    return help();
+                default:
+                    if(admin && cmd.equals("clear")){
+                        return clear();
+                    }
+                    System.out.println("Invalid input, try again");
+                    return help();
+            }
         } catch (Exception ex) {
             return ex.getMessage();
         }
     }
 
     private String logout() {
+        try{
+            server.logout(new LogoutRequest(authToken));
+            state = State.PRELOGIN;
+            admin = false;
+            return "Logged out";
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+            System.out.println("RESETTING");
+            run();
+        }
         return "";
     }
 
@@ -209,5 +252,23 @@ public class ChessClient {
 
     private String observeGame() {
         return "";
+    }
+
+    private String clear() {
+        if(admin) {
+            try {
+                server.logout(new LogoutRequest(authToken));
+                server.clear();
+                state = State.PRELOGIN;
+            } catch (Exception e) {
+                System.out.println("Error" + e.toString());
+            }
+            return "Cleared the database";
+        }
+        return "nice try. How'd you get here?";
+    }
+
+    private void clearScreen(){
+        System.out.print(ERASE_SCREEN);
     }
 }

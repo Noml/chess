@@ -1,6 +1,11 @@
 package client;
 
 
+import chess.ChessBoard;
+import chess.ChessPiece;
+import chess.ChessPosition;
+import model.GameData;
+import service.requests.JoinRequest;
 import service.requests.LoginRequest;
 import service.requests.LogoutRequest;
 import service.requests.RegisterRequest;
@@ -8,6 +13,11 @@ import service.results.CreateGameResult;
 import service.results.LoginResult;
 import service.results.RegisterResult;
 
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.sql.Array;
+import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Scanner;
 import static ui.EscapeSequences.*;
 
@@ -214,7 +224,7 @@ public class ChessClient {
                 case "list games":
                     return listGames();
                 case "play game":
-                    return playGame();
+                    return playGame(scanner);
                 case "observe game":
                     return observeGame();
                 case "help":
@@ -259,14 +269,78 @@ public class ChessClient {
             }
             return createGame(scan);
         }
-        return "Created "+gameName+ " with gameID "+c.gameID();
+        return "Created "+gameName;
     }
 
     private String listGames() {
+        System.out.println("Here are all of the games");
+        try {
+            ArrayList<GameData> games = server.listGames(authToken);
+            System.out.print(SET_TEXT_COLOR_LIGHT_GREY + SET_BG_COLOR_GREEN);
+            int counter = 1;
+            for(GameData game : games){
+                String gameName = game.gameName();
+                String pB = game.blackUsername();
+                String pW = game.whiteUsername();
+                System.out.print(SET_BG_COLOR_GREEN);
+                System.out.println(counter+" Name: "+gameName +
+                        ", White: "+pW+", Black: "+pB+RESET_BG_COLOR);
+                counter+=1;
+            }
+            System.out.print(SET_TEXT_COLOR_WHITE + RESET_BG_COLOR);
+        } catch (Exception e) {
+            System.out.println("Error in listing games. Please try again.");
+        }
         return "";
     }
 
-    private String playGame() {
+    private String playGame(Scanner scan) {
+        System.out.print("Enter the number of the game that you want to join: ");
+        String input = scan.nextLine();
+        if(input.equals("stop")){
+            return "";
+        }
+        try{
+            int number = Integer.parseInt(input);
+            try{
+                ArrayList<GameData> games = server.listGames(authToken);
+                if(number > games.size() || number <= 0){
+                    throw new Exception("The input number was not a valid game number. Please try again. " +
+                            "Enter \"stop\" to exit to the menu.");
+                }
+                GameData gameToJoin = games.get(number-1);
+                System.out.print("Enter the color that you want to claim: ");
+                input = scan.nextLine().toLowerCase();
+                if(!(input.equals("b")||input.equals("w")||
+                        input.equals("black")||input.equals("white"))){
+                    throw new Exception("That was not a valid color. Please try again");
+                }
+                try{
+                    if(input.equals("b") || input.equals("black")) {
+                        server.joinGame(new JoinRequest("BLACK", gameToJoin.gameID()), authToken);
+                        drawBoard(gameToJoin.game().getBoard(), "BLACK");
+                    }else{
+                        server.joinGame(new JoinRequest("WHITE", gameToJoin.gameID()), authToken);
+                        drawBoard(gameToJoin.game().getBoard(), "WHITE");
+                    }
+                    return "You would normally be ablet to play, but we're still working on improving the UI to allow that.";
+                }catch(Exception e){
+                    if(e.getMessage().equals("Error: already taken")){
+                        System.out.println("This player has already been taken. Please try again. Enter \"stop\" to exit to the menu.");
+                        playGame(scan);
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                playGame(scan);
+            }
+        } catch (NumberFormatException e) {
+            System.out.print("The input number was not a valid game number. ");
+            System.out.print("Please try again. Enter \"stop\" to exit to the menu.");
+            playGame(scan);
+        }
+
+
         return "";
     }
 
@@ -290,5 +364,84 @@ public class ChessClient {
 
     private void clearScreen(){
         System.out.print(ERASE_SCREEN);
+    }
+
+    private void drawBoard(ChessBoard board,String color){
+        System.out.println("Here is the current board: ");
+        if(color == null){
+            color = "WHITE";
+        }
+        if(color.equals("WHITE")){
+            board = flip(board);
+        }
+        var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
+        String[] header = {" ","h","g","f","e","d","c","b","a"," "};
+        String[] sides = {"1", "2", "3", "4", "5", "6", "7", "8"};
+        if(color.equals("BLACK")){
+            sides =new String[]{"8", "7", "6", "5", "4", "3", "2", "1"};
+        }
+        for (int i = 0; i < 10; i++) {
+            printPiece(out, SET_BG_COLOR_LIGHT_GREY,header[i]);
+        }
+        out.print("\n");
+        int r = 8;
+        for(ChessPiece[] row : board.getBoard()){
+            printPiece(out,SET_BG_COLOR_LIGHT_GREY,sides[r-1]);
+            for (int i = 0; i < 8; i++) {
+                String tF;
+                String bgF;
+                String p;
+                try {
+                    p = row[i].toString();
+                    if (row[i].getTeamColor().toString().equals("BLACK")) {
+                        tF = SET_TEXT_COLOR_BLUE;
+                    } else {
+                        tF = SET_TEXT_COLOR_RED;
+                    }
+                }catch(Exception e){
+                    //board has a null object there
+                    p = " ";
+                    tF = RESET_TEXT_COLOR;
+                }
+                if(r%2==0){
+                    if(i%2 == 0){
+                        bgF = SET_BG_COLOR_WHITE;
+                    }else{
+                        bgF = SET_BG_COLOR_BLACK;
+                    }
+                }else{
+                    if(i%2 == 0){
+                        bgF = SET_BG_COLOR_BLACK;
+                    }else{
+                        bgF = SET_BG_COLOR_WHITE;
+                    }
+                }
+                p = tF+p;
+                printPiece(out,bgF,p);
+
+            }
+            printPiece(out,SET_BG_COLOR_LIGHT_GREY,sides[r-1]);
+            out.print("\n");
+            r-=1;
+        }
+        for (int i = 0; i < 10; i++) {
+            printPiece(out, SET_BG_COLOR_LIGHT_GREY,header[i]);
+        }
+        out.print("\n");
+    }
+
+    private ChessBoard flip(ChessBoard board) {
+        ChessBoard bOG = board;
+        ChessBoard finalBoard = new ChessBoard();
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                finalBoard.addPiece(new ChessPosition(8-i,8-j),board.getPiece(new ChessPosition(i+1,j+1)));
+            }
+        }
+        return finalBoard;
+    }
+
+    private void printPiece(PrintStream out, String colorBG, String label){
+        out.print(colorBG + " "+label+" "+RESET_BG_COLOR+RESET_TEXT_COLOR);
     }
 }

@@ -15,9 +15,7 @@ import service.results.RegisterResult;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
-import java.sql.Array;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Scanner;
 import static ui.EscapeSequences.*;
 
@@ -29,6 +27,7 @@ public class ChessClient {
     private State state;
     private String authToken;
     private boolean admin = false;
+    private int gameIDToObserve;
 
     public ChessClient(String serverUrl){
         server = new ServerFacade(serverUrl);
@@ -86,7 +85,7 @@ public class ChessClient {
                     break;
                 }
             }catch (Throwable e){
-                System.out.println(e.toString());
+                System.out.println(e.getMessage());
             }
             if(state == State.POSTLOGIN){
 
@@ -110,7 +109,7 @@ public class ChessClient {
                 result = postloginEval(input, scanner);
                 System.out.println(result);
             }catch (Throwable e){
-                System.out.println(e.toString());
+                System.out.println(e.getMessage());
             }
             if(state == State.PRELOGIN){
                 break;
@@ -159,7 +158,6 @@ public class ChessClient {
         try{
             LoginResult result = server.login(new LoginRequest(username,password));
             authToken = result.authToken();
-            password = "";
             state = State.POSTLOGIN;
             if(username.equals("admin")){
                 admin = true;
@@ -167,10 +165,13 @@ public class ChessClient {
             return "You logged in as: "+result.username() + "\n";
         }catch(Exception e){
             if(e.getMessage().equals("Error: unauthorized")){
-                System.out.println("No user was found with those credentials. Please try again or type quit for the username to exit.\n");
-            }
-            else{
-                System.out.println("    Error: "+e.toString());
+                System.out.println("No user was found with those credentials. " +
+                        "Please try again or type quit for the username to exit.\n");
+            } else if (e.getMessage().equals("Error: bad request")){
+                System.out.println("Either the username or the password was entered incorrectly." +
+                        " Please try again or type quit for the username to exit \n");
+            } else{
+                System.out.println("    Error: "+e.getMessage());
             }
             return login(scan);
         }
@@ -190,7 +191,6 @@ public class ChessClient {
         try{
             RegisterResult result = server.register(new RegisterRequest(username,password,email));
             authToken = result.authToken();
-            password = "";
             state = State.POSTLOGIN;
             if(username.equals("admin")){
                 admin = true;
@@ -203,7 +203,7 @@ public class ChessClient {
                 System.out.println("The username "+username+" is already taken. Please try again or type quit for the username to exit.\n");
             }
             else{
-                System.out.println("    Error: "+e.toString());
+                System.out.println("    Error: "+e.getMessage());
             }
             return register(scan);
         }
@@ -226,7 +226,7 @@ public class ChessClient {
                 case "play game":
                     return playGame(scanner);
                 case "observe game":
-                    return observeGame();
+                    return observeGame(scanner);
                 case "help":
                     return "";
                 default:
@@ -257,15 +257,14 @@ public class ChessClient {
     private String createGame(Scanner scan) {
         System.out.print("Enter a name for the game: ");
         String gameName = scan.nextLine();
-        CreateGameResult c;
         try{
-            c = server.createGame(authToken,gameName);
+            server.createGame(authToken,gameName);
         } catch (Exception e) {
             if(e.getMessage().equals("Error: bad request")){
                 System.out.println("You were unable to create the game. Please try again or type quit for the username to exit.\n");
             }
             else{
-                System.out.println("    Error: "+e.toString());
+                System.out.println("    Error: "+e.getMessage());
             }
             return createGame(scan);
         }
@@ -336,15 +335,40 @@ public class ChessClient {
             }
         } catch (NumberFormatException e) {
             System.out.print("The input number was not a valid game number. ");
-            System.out.print("Please try again. Enter \"stop\" to exit to the menu.");
+            System.out.println("Please try again. Enter \"stop\" to exit to the menu.");
             playGame(scan);
         }
-
-
         return "";
     }
 
-    private String observeGame() {
+    private String observeGame(Scanner scan) {
+        System.out.print("Enter the number of the game that you want to observe: ");
+        String input = scan.nextLine();
+        if(input.equals("stop")){
+            return "";
+        }
+        try{
+            int number = Integer.parseInt(input);
+            try{
+                ArrayList<GameData> games = server.listGames(authToken);
+                if(number > games.size() || number <= 0){
+                    throw new Exception("The input number was not a valid game number. Please try again. " +
+                            "Enter \"stop\" to exit to the menu.");
+                }
+                GameData gameToObserve = games.get(number-1);
+                gameIDToObserve = gameToObserve.gameID();
+                System.out.println(gameToObserve.whiteUsername()+" is playing as WHITE");
+                System.out.println(gameToObserve.blackUsername()+" is playing as BLACK");
+                drawBoard(gameToObserve.game().getBoard(), null);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                playGame(scan);
+            }
+        } catch (NumberFormatException e) {
+            System.out.print("The input number was not a valid game number. ");
+            System.out.println("Please try again. Enter \"stop\" to exit to the menu.");
+            playGame(scan);
+        }
         return "";
     }
 
@@ -355,7 +379,7 @@ public class ChessClient {
                 server.clear();
                 state = State.PRELOGIN;
             } catch (Exception e) {
-                System.out.println("Error" + e.toString());
+                System.out.println("Error" + e.getMessage());
             }
             return "Cleared the database";
         }
@@ -431,7 +455,6 @@ public class ChessClient {
     }
 
     private ChessBoard flip(ChessBoard board) {
-        ChessBoard bOG = board;
         ChessBoard finalBoard = new ChessBoard();
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {

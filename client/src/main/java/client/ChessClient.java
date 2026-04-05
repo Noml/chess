@@ -543,6 +543,9 @@ public class ChessClient {
             printPiece(out,SET_BG_COLOR_LIGHT_GREY,sides[r-1]);
             for (int i = 0; i < 8; i++) {
                 ChessPosition pos = new ChessPosition(r,i+1);
+                if(color == Color.BLACK){
+                    pos = flipChessPos(pos);
+                }
                 String tF;
                 String bgF;
                 String p;
@@ -570,7 +573,7 @@ public class ChessClient {
                             bgF = SET_BG_COLOR_DARK_GREEN;
                         }
                     }
-                }else {
+                }else{
                     if (i % 2 == 0) {
                         bgF = SET_BG_COLOR_BLACK;
                         if (highlightedPositions!= null && highlightedPositions.contains(pos)) {
@@ -595,6 +598,12 @@ public class ChessClient {
         }
         out.print("\n");
     }
+
+    private ChessPosition flipChessPos(ChessPosition pos){
+        return new ChessPosition(9-pos.getRow(),9-pos.getColumn());
+
+    }
+
     private ChessBoard flipForBlack(ChessBoard board){
         ChessBoard finalBoard = new ChessBoard();
         for (int i = 0; i < 8; i++) {

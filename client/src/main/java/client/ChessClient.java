@@ -258,13 +258,13 @@ public class ChessClient {
         System.out.println("Here are all of the games");
         try {
             ArrayList<GameData> games = server.listGames(authToken);
-            System.out.print(SET_TEXT_COLOR_LIGHT_GREY + SET_BG_COLOR_GREEN);
+            System.out.print(SET_TEXT_COLOR_GREEN + SET_BG_COLOR_BLACK);
             int counter = 1;
             for(GameData game : games){
                 String gameName = game.gameName();
                 String pB = game.blackUsername();
                 String pW = game.whiteUsername();
-                System.out.print(SET_BG_COLOR_GREEN);
+                System.out.print(SET_BG_COLOR_BLACK);
                 System.out.println(counter+" Name: "+gameName +
                         ", White: "+pW+", Black: "+pB+RESET_BG_COLOR);
                 counter+=1;

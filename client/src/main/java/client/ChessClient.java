@@ -1,6 +1,7 @@
 package client;
 
 import chess.ChessBoard;
+import chess.ChessMove;
 import chess.ChessPiece;
 import chess.ChessPosition;
 import model.GameData;
@@ -9,9 +10,8 @@ import client.requests.*;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
+
 import static ui.EscapeSequences.*;
 
 public class ChessClient {
@@ -178,7 +178,7 @@ public class ChessClient {
                    yield "leave";
                 }
                 case "resign" -> resign(scanner);
-                case "highlight legal moves" -> drawHighlightedBoard();
+                case "highlight legal moves" -> drawHighlightedBoard(scanner);
                 case "redraw chess board" -> redrawChessboard();
                 default -> "Invalid input, try again";
             };
@@ -192,8 +192,53 @@ public class ChessClient {
         return "";
     }
 
-    private String drawHighlightedBoard(){
+    private String drawHighlightedBoard(Scanner scanner){
+        try {
+            ArrayList<GameData> games = server.listGames(authToken);
+            GameData gameData = games.get(gameNumber);
+            System.out.println("Enter the position of the piece you want to check its moves: (ex. \"B5\")");
+            String input = scanner.nextLine();
+            Map<Character,Integer> map = new HashMap<>();
+            map.put('a',1);
+            map.put('b',2);
+            map.put('c',3);
+            map.put('d',4);
+            map.put('e',5);
+            map.put('f',6);
+            map.put('g',7);
+            map.put('h',8);
+            try{
+                if(input.equals("STOP")){
+                    return "";
+                }
+                char[] cInput = input.toCharArray();
+                if(cInput.length != 2){
+                    throw new Exception("Invalid position");
+                }
+                char ch = cInput[1];
+                if (ch < '1' || ch > '8') {
+                    throw new Exception("Column must be 1-8");
+                }
+                int col = map.get(Character.toLowerCase(cInput[0]));
+                int row = ch - '0';
+                ChessPosition start = new ChessPosition(row,col);
+                Collection<ChessMove> moves = gameData.game().validMoves(start);
+                Collection<ChessPosition> posToHighlight = new ArrayList<>();
+                for(ChessMove move : moves){
+                    posToHighlight.add(move.getEndPosition());
+                }
+                if(color == null){
+                    color = Color.WHITE;
+                }
+                drawBoard(gameData.game().getBoard(), color, posToHighlight);
 
+            }catch(Exception e){
+                System.out.println("Invalid position. Try again or type STOP to exit to the Gameplay UI");
+                drawHighlightedBoard(scanner);
+            }
+        } catch (Exception e) {
+            return e.getMessage();
+        }
         return "";
     }
 
@@ -201,11 +246,10 @@ public class ChessClient {
         try {
             ArrayList<GameData> games = server.listGames(authToken);
             GameData gameData = games.get(gameNumber);
-            if(color == null || color == Color.WHITE){
-                drawBoard(gameData.game().getBoard(), Color.WHITE);
-            }else{
-                drawBoard(gameData.game().getBoard(), Color.BLACK);
+            if(color == null){
+                color = Color.WHITE;
             }
+            drawBoard(gameData.game().getBoard(), color, null);
         } catch (Exception e) {
             return e.getMessage();
         }
@@ -399,11 +443,11 @@ public class ChessClient {
                     if(input.equals("b") || input.equals("black")) {
                         color = Color.BLACK;
                         server.joinGame(new JoinRequest("BLACK", gameToJoin.gameID()), authToken);
-                        drawBoard(gameToJoin.game().getBoard(), color);
+                        drawBoard(gameToJoin.game().getBoard(), color, null);
                     }else{
                         color = Color.WHITE;
                         server.joinGame(new JoinRequest("WHITE", gameToJoin.gameID()), authToken);
-                        drawBoard(gameToJoin.game().getBoard(), color);
+                        drawBoard(gameToJoin.game().getBoard(), color,null);
                     }
                     state = State.GAMEPLAY;
                     return "";
@@ -444,16 +488,16 @@ public class ChessClient {
 //                int gameIDToObserve = gameToObserve.gameID();
                 System.out.println(gameToObserve.whiteUsername()+" is playing as WHITE");
                 System.out.println(gameToObserve.blackUsername()+" is playing as BLACK");
-                drawBoard(gameToObserve.game().getBoard(), Color.WHITE);
+                drawBoard(gameToObserve.game().getBoard(), Color.WHITE,null);
                 state = State.GAMEPLAY;
             } catch (Exception e) {
                 System.out.println(e.getMessage());
-                playGame(scan);
+                observeGame(scan);
             }
         } catch (NumberFormatException e) {
             System.out.print("The input number was not a valid game number. ");
             System.out.println("Please try again. Enter \"STOP\" to exit to the menu.");
-            playGame(scan);
+            observeGame(scan);
         }
         return "";
     }
@@ -476,7 +520,7 @@ public class ChessClient {
         System.out.print(ERASE_SCREEN);
     }
 
-    private void drawBoard(ChessBoard board,Color color){
+    private void drawBoard(ChessBoard board, Color color, Collection<ChessPosition> highlightedPositions){
         System.out.println("Here is the current board: ");
         if(color == Color.WHITE){
             board = flip(board);
@@ -498,6 +542,7 @@ public class ChessClient {
         for(ChessPiece[] row : board.getBoard()){
             printPiece(out,SET_BG_COLOR_LIGHT_GREY,sides[r-1]);
             for (int i = 0; i < 8; i++) {
+                ChessPosition pos = new ChessPosition(r,i+1);
                 String tF;
                 String bgF;
                 String p;
@@ -516,19 +561,30 @@ public class ChessClient {
                 if(r%2==0){
                     if(i%2 == 0){
                         bgF = SET_BG_COLOR_WHITE;
+                        if(highlightedPositions!= null && highlightedPositions.contains(pos)){
+                            bgF = SET_BG_COLOR_GREEN;
+                        }
                     }else{
                         bgF = SET_BG_COLOR_BLACK;
+                        if(highlightedPositions!= null && highlightedPositions.contains(pos)){
+                            bgF = SET_BG_COLOR_DARK_GREEN;
+                        }
                     }
-                }else{
-                    if(i%2 == 0){
+                }else {
+                    if (i % 2 == 0) {
                         bgF = SET_BG_COLOR_BLACK;
-                    }else{
+                        if (highlightedPositions!= null && highlightedPositions.contains(pos)) {
+                            bgF = SET_BG_COLOR_DARK_GREEN;
+                        }
+                    } else {
                         bgF = SET_BG_COLOR_WHITE;
+                        if (highlightedPositions!= null && highlightedPositions.contains(pos)) {
+                            bgF = SET_BG_COLOR_GREEN;
+                        }
                     }
                 }
                 p = tF+p;
                 printPiece(out,bgF,p);
-
             }
             printPiece(out,SET_BG_COLOR_LIGHT_GREY,sides[r-1]);
             out.print("\n");

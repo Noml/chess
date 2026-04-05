@@ -10,6 +10,7 @@ import client.requests.*;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Scanner;
 import static ui.EscapeSequences.*;
 
@@ -17,14 +18,20 @@ public class ChessClient {
     enum State{
         PRELOGIN,POSTLOGIN,GAMEPLAY
     }
+    enum Color{
+        BLACK,WHITE
+    }
     private final ServerFacade server;
     private State state;
     private String authToken;
     private boolean admin = false;
+    private Color color;
+    private int gameNumber;
 
     public ChessClient(String serverUrl){
         server = new ServerFacade(serverUrl);
         state = State.PRELOGIN;
+        color = null;
     }
 
     public void run() {
@@ -42,17 +49,17 @@ public class ChessClient {
         }
     }
 
-    private String help(){
+    private String help() {
         String help;
         System.out.println("Enter one of the following commands:");
-        if(state == State.PRELOGIN){
+        if (state == State.PRELOGIN) {
             help = """
                      - help: display this message
                      - quit: exit the program
                      - login: enter credentials to do more actions
                      - register: create an account
                     """;
-        }else if(state == State.POSTLOGIN){
+        } else if (state == State.POSTLOGIN) {
             help = """
                      - help: display this message
                      - logout: end session, not program
@@ -60,6 +67,15 @@ public class ChessClient {
                      - list games: list all chess games
                      - play game: join a chess game
                      - observe game: observe a chess game
+                    """;
+        }else if(state == State.GAMEPLAY){
+            help = """
+                     - help: display this message
+                     - leave: return to Postlogin UI
+                     - redraw chess board: redraws the board
+                     - make move: make a move in the game
+                     - resign: admit defeat and lose
+                     - highlight legal moves: highlights the moves of a chess piece
                     """;
         }else{
             help = "";
@@ -112,12 +128,12 @@ public class ChessClient {
         }
         if(state == State.PRELOGIN){
             clearScreen();
-            System.out.println("Entering prelogin UI");
+            System.out.println("Entering prelogin UI\n");
             run();
         }
         if(state == State.GAMEPLAY){
             clearScreen();
-            System.out.println("Entering Gameplay UI");
+            System.out.println("Entering Gameplay UI\n");
             run();
         }
     }
@@ -130,6 +146,9 @@ public class ChessClient {
             String input = scanner.nextLine();
             try{
                 result = gameplayEval(input, scanner);
+                if(Objects.equals(result, "leave")){
+                    break;
+                }
                 System.out.println(result);
             }catch (Throwable e){
                 System.out.println(e.getMessage());
@@ -138,9 +157,9 @@ public class ChessClient {
                 break;
             }
         }
-        if(state == State.PRELOGIN){
+        if(state == State.POSTLOGIN){
             clearScreen();
-            System.out.println("Entering prelogin UI");
+            System.out.println("Entering postlogin UI\n");
             run();
         }
     }
@@ -154,7 +173,10 @@ public class ChessClient {
             }
             return switch(cmd){
                 case "help" -> "";
-                case "leave" -> "leave";
+                case "leave" -> {
+                   state = State.POSTLOGIN;
+                   yield "leave";
+                }
                 case "resign" -> resign(scanner);
                 case "highlight legal moves" -> drawHighlightedBoard();
                 case "redraw chess board" -> redrawChessboard();
@@ -176,13 +198,19 @@ public class ChessClient {
     }
 
     private String redrawChessboard(){
-
+        try {
+            ArrayList<GameData> games = server.listGames(authToken);
+            GameData gameData = games.get(gameNumber);
+            if(color == null || color == Color.WHITE){
+                drawBoard(gameData.game().getBoard(), Color.WHITE);
+            }else{
+                drawBoard(gameData.game().getBoard(), Color.BLACK);
+            }
+        } catch (Exception e) {
+            return e.getMessage();
+        }
         return "";
     }
-
-
-
-
 
     private String preloginEval(String input,Scanner scanner){
         try {
@@ -360,6 +388,7 @@ public class ChessClient {
                             "Enter \"STOP\" to exit to the menu.");
                 }
                 GameData gameToJoin = games.get(number-1);
+                gameNumber = number-1;
                 System.out.print("Enter the color that you want to claim: ");
                 input = scan.nextLine().toLowerCase();
                 if(!(input.equals("b")||input.equals("w")||
@@ -368,13 +397,16 @@ public class ChessClient {
                 }
                 try{
                     if(input.equals("b") || input.equals("black")) {
+                        color = Color.BLACK;
                         server.joinGame(new JoinRequest("BLACK", gameToJoin.gameID()), authToken);
-                        drawBoard(gameToJoin.game().getBoard(), "BLACK");
+                        drawBoard(gameToJoin.game().getBoard(), color);
                     }else{
+                        color = Color.WHITE;
                         server.joinGame(new JoinRequest("WHITE", gameToJoin.gameID()), authToken);
-                        drawBoard(gameToJoin.game().getBoard(), "WHITE");
+                        drawBoard(gameToJoin.game().getBoard(), color);
                     }
-                    return "You would normally be ablet to play, but we're still working on improving the UI to allow that.";
+                    state = State.GAMEPLAY;
+                    return "";
                 }catch(Exception e){
                     if(e.getMessage().equals("Error: already taken")){
                         System.out.println("This player has already been taken. Please try again. Enter \"STOP\" to exit to the menu.");
@@ -408,10 +440,12 @@ public class ChessClient {
                             "Enter \"STOP\" to exit to the menu.");
                 }
                 GameData gameToObserve = games.get(number-1);
+                gameNumber = number-1;
 //                int gameIDToObserve = gameToObserve.gameID();
                 System.out.println(gameToObserve.whiteUsername()+" is playing as WHITE");
                 System.out.println(gameToObserve.blackUsername()+" is playing as BLACK");
-                drawBoard(gameToObserve.game().getBoard(), null);
+                drawBoard(gameToObserve.game().getBoard(), Color.WHITE);
+                state = State.GAMEPLAY;
             } catch (Exception e) {
                 System.out.println(e.getMessage());
                 playGame(scan);
@@ -442,12 +476,9 @@ public class ChessClient {
         System.out.print(ERASE_SCREEN);
     }
 
-    private void drawBoard(ChessBoard board,String color){
+    private void drawBoard(ChessBoard board,Color color){
         System.out.println("Here is the current board: ");
-        if(color == null){
-            color = "WHITE";
-        }
-        if(color.equals("WHITE")){
+        if(color == Color.WHITE){
             board = flip(board);
         }else{
             board = flipForBlack(board);
@@ -455,8 +486,8 @@ public class ChessClient {
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
         String[] header = {" ","a","b","c","d","e","f","g","h"," "};
         String[] sides = {"1", "2", "3", "4", "5", "6", "7", "8"};
-        if(color.equals("BLACK")){
-            sides =new String[]{"8", "7", "6", "5", "4", "3", "2", "1"};
+        if(color == Color.BLACK){
+            sides = new String[]{"8", "7", "6", "5", "4", "3", "2", "1"};
             header = new String[]{" ","h","g","f","e","d","c","b","a"," "};
         }
         for (int i = 0; i < 10; i++) {

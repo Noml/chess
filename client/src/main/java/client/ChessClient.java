@@ -15,7 +15,7 @@ import static ui.EscapeSequences.*;
 
 public class ChessClient {
     enum State{
-        PRELOGIN,POSTLOGIN
+        PRELOGIN,POSTLOGIN,GAMEPLAY
     }
     private final ServerFacade server;
     private State state;
@@ -31,12 +31,13 @@ public class ChessClient {
         Scanner scanner = new Scanner(System.in);
         switch(state){
             case PRELOGIN:
-
                 preloginRepl(scanner);
                 break;
             case POSTLOGIN:
-
                 postloginRepl(scanner);
+                break;
+            case GAMEPLAY:
+                gameplayRepl(scanner);
                 break;
         }
     }
@@ -51,7 +52,7 @@ public class ChessClient {
                      - login: enter credentials to do more actions
                      - register: create an account
                     """;
-        }else{
+        }else if(state == State.POSTLOGIN){
             help = """
                      - help: display this message
                      - logout: end session, not program
@@ -60,6 +61,8 @@ public class ChessClient {
                      - play game: join a chess game
                      - observe game: observe a chess game
                     """;
+        }else{
+            help = "";
         }
         return help;
     }
@@ -81,7 +84,6 @@ public class ChessClient {
                 System.out.println(e.getMessage());
             }
             if(state == State.POSTLOGIN){
-
                 break;
             }
         }
@@ -104,7 +106,35 @@ public class ChessClient {
             }catch (Throwable e){
                 System.out.println(e.getMessage());
             }
-            if(state == State.PRELOGIN){
+            if(state == State.PRELOGIN || state == State.GAMEPLAY){
+                break;
+            }
+        }
+        if(state == State.PRELOGIN){
+            clearScreen();
+            System.out.println("Entering prelogin UI");
+            run();
+        }
+        if(state == State.GAMEPLAY){
+            clearScreen();
+            System.out.println("Entering Gameplay UI");
+            run();
+        }
+    }
+
+    private void gameplayRepl(Scanner scanner){
+        var result = "";
+        while(!result.equals("leave")){
+            System.out.print(help());
+            System.out.print(SET_TEXT_COLOR_YELLOW+ ">>> "+SET_TEXT_COLOR_WHITE);
+            String input = scanner.nextLine();
+            try{
+                result = gameplayEval(input, scanner);
+                System.out.println(result);
+            }catch (Throwable e){
+                System.out.println(e.getMessage());
+            }
+            if(state == State.POSTLOGIN){
                 break;
             }
         }
@@ -114,6 +144,45 @@ public class ChessClient {
             run();
         }
     }
+
+    private String gameplayEval(String input, Scanner scanner){
+        try{
+            String inputLower = input.toLowerCase();
+            String cmd = "";
+            if(!inputLower.isEmpty()){
+                cmd = inputLower;
+            }
+            return switch(cmd){
+                case "help" -> "";
+                case "leave" -> "leave";
+                case "resign" -> resign(scanner);
+                case "highlight legal moves" -> drawHighlightedBoard();
+                case "redraw chess board" -> redrawChessboard();
+                default -> "Invalid input, try again";
+            };
+        }catch (Exception ex) {
+            return ex.getMessage();
+        }
+    }
+
+    private String resign(Scanner scanner){
+
+        return "";
+    }
+
+    private String drawHighlightedBoard(){
+
+        return "";
+    }
+
+    private String redrawChessboard(){
+
+        return "";
+    }
+
+
+
+
 
     private String preloginEval(String input,Scanner scanner){
         try {

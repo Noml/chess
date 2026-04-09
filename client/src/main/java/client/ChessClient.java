@@ -194,6 +194,7 @@ public class ChessClient {
 
     private String drawHighlightedBoard(Scanner scanner){
         try {
+
             ArrayList<GameData> games = server.listGames(authToken);
             GameData gameData = games.get(gameNumber);
             System.out.println("Enter the position of the piece you want to check its moves: (ex. \"B5\")");

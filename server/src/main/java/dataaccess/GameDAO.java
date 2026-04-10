@@ -77,5 +77,9 @@ public class GameDAO extends DAO{
         return null;
     }
 
+    public void updateGame(GameData g) throws DataAccessException {
+        db.updateGame(g);
+    }
+
 
 }

@@ -11,11 +11,21 @@ import java.util.*;
 public class ChessGame {
     private ChessBoard board;
     private TeamColor currentTurn;
+    private boolean playable;
 
     public ChessGame() {
         this.board = new ChessBoard();
         board.resetBoard();//set the board to the starting setup
         setTeamTurn(TeamColor.WHITE);//start with White
+        playable = true;
+    }
+
+    public boolean isPlayable(){
+        return playable;
+    }
+
+    public void unplayable(){
+        playable = false;
     }
 
     /**

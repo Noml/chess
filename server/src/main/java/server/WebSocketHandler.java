@@ -1,5 +1,6 @@
 package server;
 
+import chess.*;
 import com.google.gson.Gson;
 import dataaccess.AuthDAO;
 import dataaccess.DatabaseManager;
@@ -48,11 +49,16 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
         int gameID = userGameCommand.getGameID();
         GameData gameData = gameDAO.findGame(gameID);
+        ChessBoard board = gameData.game().getBoard();
+        ChessGame game = gameData.game();
+        boolean playable = game.isPlayable();
+
         String auth = userGameCommand.getAuthToken();
         String username = authDAO.getAuthData(auth).username();
         String color = userGameCommand.getColor();
         if(color.isEmpty()){
-            ctx.send("Error: no color added");
+            ctx.send(gson.toJson(new ServerMessage(ServerMessage.ServerMessageType.ERROR,
+                    "Error: no color added")));
             return;
         }
         Notification n;
@@ -65,7 +71,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     n = new Notification(username + " is observing");
                 }
                     connectionManager.broadcast(ctx.session,n);
-                ctx.send(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, gson.toJson(gameData)));
+                ctx.send(gson.toJson(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, gson.toJson(gameData))));
                 break;
             case LEAVE:
                 String a = "";
@@ -82,17 +88,63 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             case RESIGN:
                 n = new Notification(username + "resigned");
                 connectionManager.broadcast(ctx.session,n);
-                //make it so that you can't do any more moves
-
+                game.unplayable();
+                gameData = new GameData(gameID,
+                        gameData.whiteUsername(),
+                        gameData.blackUsername(),
+                        gameData.gameName(),
+                        game);
+                gameDAO.updateGame(gameData);
                 break;
             case MAKE_MOVE:
-                //print who moved what
-                //update board on each screen
-                //if in check/checkmate, broadcast who is in it.
+                if(!playable){
+                    ctx.send(gson.toJson(new ServerMessage(ServerMessage.ServerMessageType.ERROR,
+                            "Error: unplayable game")));
+                    return;
+                }
+                ChessMove move = userGameCommand.getMove();
+                try{
+                    game.makeMove(move);
+                    ChessPiece p = board.getPiece(move.getStartPosition());
+                    n = new Notification(username + " moved "+p.toString() + ": " + move.toString());
+                    connectionManager.broadcast(ctx.session,n);
+                    if(game.isInCheck(ChessGame.TeamColor.BLACK)){
+                        n = new Notification("BLACK is in check!");
+                        connectionManager.broadcast(ctx.session,n);
+                    } else if (game.isInCheck(ChessGame.TeamColor.WHITE)) {
+                        n = new Notification("WHITE is in check!");
+                        connectionManager.broadcast(ctx.session,n);
+                    }
+                    if(game.isInCheckmate(ChessGame.TeamColor.BLACK)){
+                        n = new Notification("BLACK is in checkmate!");
+                        game.unplayable();
+                        connectionManager.broadcast(ctx.session,n);
+                    } else if (game.isInCheckmate(ChessGame.TeamColor.WHITE)) {
+                        n = new Notification("WHITE is in checkmate!");
+                        connectionManager.broadcast(ctx.session,n);
+                        game.unplayable();
+                    }
+                    if(game.isInStalemate(ChessGame.TeamColor.BLACK)){
+                        n = new Notification("BLACK is in stalemate!");
+                        connectionManager.broadcast(ctx.session,n);
+                        game.unplayable();
+                    } else if (game.isInStalemate(ChessGame.TeamColor.WHITE)) {
+                        n = new Notification("WHITE is in stalemate!");
+                        connectionManager.broadcast(ctx.session,n);
+                        game.unplayable();
+                    }
+                    gameData = new GameData(gameID,gameData.whiteUsername(),
+                            gameData.blackUsername(),gameData.gameName(),game);
+                    gameDAO.updateGame(gameData);
+
+                }catch (Exception e){
+                    ctx.send(gson.toJson(new ServerMessage(ServerMessage.ServerMessageType.ERROR,
+                            "Error: "+ e.getMessage())));
+                    return;
+                }
+                ctx.send(gson.toJson(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME,gson.toJson(game))));
                 break;
         }
-
-        System.out.println("WS Response: " + ctx.message());
     }
 
     private boolean isValid(UserGameCommand userGameCommand){

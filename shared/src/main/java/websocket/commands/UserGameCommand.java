@@ -16,10 +16,13 @@ public class UserGameCommand{
 
     private final Integer gameID;
 
+    private String color;
+
     public UserGameCommand(CommandType commandType, String authToken, Integer gameID) {
         this.commandType = commandType;
         this.authToken = authToken;
         this.gameID = gameID;
+        color = "";
     }
 
     public enum CommandType {
@@ -27,6 +30,14 @@ public class UserGameCommand{
         MAKE_MOVE,
         LEAVE,
         RESIGN
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public String getColor(){
+        return color;
     }
 
     public CommandType getCommandType() {

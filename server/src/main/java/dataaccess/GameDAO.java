@@ -55,4 +55,27 @@ public class GameDAO extends DAO{
         }
         return null;
     }
+
+    public GameData removePlayer(int gameID, String playerColor, String username) throws DataAccessException{
+        ArrayList<GameData> allGameData = db.getAllGameData();
+        for (GameData g : allGameData) {
+            if (gameID == g.gameID()) {
+                switch (playerColor) {
+                    case "BLACK":
+                        g = new GameData(gameID, g.whiteUsername(), null, g.gameName(), g.game());
+                        break;
+                    case "WHITE":
+                        g = new GameData(gameID, null, g.blackUsername(), g.gameName(), g.game());
+                        break;
+                    case null, default:
+                        return null;
+                }
+                db.updateGame(g);
+                return g;
+            }
+        }
+        return null;
+    }
+
+
 }

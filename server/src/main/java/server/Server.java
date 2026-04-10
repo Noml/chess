@@ -19,7 +19,7 @@ public class Server {
             System.out.println(e.getMessage());
         }
         service = new Service(dbManager);
-        webSocketHandler = new WebSocketHandler();
+        webSocketHandler = new WebSocketHandler(dbManager);
         javalin = Javalin.create(config -> config.staticFiles.add("/web"));
         javalin.post("/user", new RegisterHandler(service))
                 .delete("/db", new ClearHandler(service))

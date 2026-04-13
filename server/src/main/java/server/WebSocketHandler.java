@@ -205,8 +205,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     gameData.blackUsername(),gameData.gameName(),game);
             gameDAO.updateGame(gameData);
         }catch (Exception e){
-            ErrorMessage r = new ErrorMessage(ERROR, "Error: "+ e.getMessage());
-            ctx.send(gson.toJson(r));
+            throw new Exception(e.getMessage());
         }
     }
 

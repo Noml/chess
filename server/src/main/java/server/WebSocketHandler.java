@@ -3,7 +3,6 @@ package server;
 import chess.*;
 import com.google.gson.Gson;
 import dataaccess.AuthDAO;
-import dataaccess.DataAccessException;
 import dataaccess.DatabaseManager;
 import dataaccess.GameDAO;
 import io.javalin.websocket.*;
@@ -14,22 +13,16 @@ import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.Notification;
-import websocket.messages.ServerMessage;
-
-import java.util.ArrayList;
 
 import static websocket.messages.ServerMessage.ServerMessageType.*;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
-    private DatabaseManager dbM;
-    private AuthDAO authDAO;
-    private GameDAO gameDAO;
-    private ConnectionManager connectionManager;
-    private Gson gson;
-
+    private final AuthDAO authDAO;
+    private final GameDAO gameDAO;
+    private final ConnectionManager connectionManager;
+    private final Gson gson;
 
     public WebSocketHandler(DatabaseManager dbM){
-        this.dbM = dbM;
         authDAO = new AuthDAO(dbM);
         gameDAO = new GameDAO(dbM);
         connectionManager = new ConnectionManager();
@@ -37,12 +30,12 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     @Override
-    public void handleClose(@NotNull WsCloseContext wsCloseContext) throws Exception {
+    public void handleClose(@NotNull WsCloseContext wsCloseContext){
         System.out.println("Websocket closed");
     }
 
     @Override
-    public void handleConnect(@NotNull WsConnectContext wsConnectContext) throws Exception {
+    public void handleConnect(@NotNull WsConnectContext wsConnectContext){
         wsConnectContext.enableAutomaticPings();
         System.out.println("Websocket connected");
     }
@@ -56,7 +49,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
         int gameID = userGameCommand.getGameID();
         GameData gameData = gameDAO.findGame(gameID);
-        ChessBoard board = gameData.game().getBoard();
         ChessGame game = gameData.game();
         boolean playable = game.isPlayable();
 
@@ -91,7 +83,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 if(color.equals("observing")){
                     a = color;
                 }
-                n = new Notification(username + "left "+a);
+                n = new Notification(username + " left "+a);
                 connectionManager.broadcast(ctx.session,n,gameID);
                 connectionManager.remove(ctx.session,gameID);
                 if(!color.equals("observing")){
@@ -109,7 +101,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     ctx.send(gson.toJson(errorMessage));
                     break;
                 }
-                n = new Notification(username + "resigned");
+                n = new Notification("User "+username + " resigned\n");
                 connectionManager.broadcast(null,n,gameID);
                 game.unplayable();
                 gameData = new GameData(gameID,
@@ -172,20 +164,19 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         if(color.equals("observing")){
             throw new Exception("Attempted to play as observer");
         }
-
         ChessMove move = userGameCommand.getMove();
         try{
             if(!playable){
                 throw new Exception("unplayable game");
             }
             ChessPiece p = board.getPiece(move.getStartPosition());
+            String s = p.toString();
             if(color.equals("WHITE") && p.getTeamColor() == ChessGame.TeamColor.BLACK
                 ||color.equals("BLACK") && p.getTeamColor() == ChessGame.TeamColor.WHITE){
                 throw new Exception("Attempted to play as other color");
             }
             game.makeMove(move);
-            ChessBoard board1 = game.getBoard();
-            n = new Notification(username + " moved "+p.toString() + ": " + move.toString());
+            n = new Notification(username + " moved "+s + ": " + move);
             connectionManager.broadcast(ctx.session,n,gameID);
             if(game.isInCheck(ChessGame.TeamColor.BLACK)){
                 n = new Notification("BLACK is in check!");
@@ -214,8 +205,8 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     gameData.blackUsername(),gameData.gameName(),game);
             gameDAO.updateGame(gameData);
         }catch (Exception e){
-            n = new Notification(gson.toJson(new ErrorMessage(ERROR, "Error: "+ e.getMessage())));
-            throw new Exception(n.message());
+            ErrorMessage r = new ErrorMessage(ERROR, "Error: "+ e.getMessage());
+            ctx.send(gson.toJson(r));
         }
     }
 

@@ -14,6 +14,7 @@ import websocket.messages.ServerMessage;
 
 import static websocket.commands.UserGameCommand.CommandType.*;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -28,7 +29,7 @@ public class ChessClient implements ServerMessageHandler {
         BLACK,WHITE
     }
     private final ServerFacade server;
-    private WebsocketFacade websocket;
+    private final WebsocketFacade websocket;
     private State state;
     private String authToken;
     private boolean admin = false;
@@ -60,7 +61,7 @@ public class ChessClient implements ServerMessageHandler {
 
     private String help() {
         String help;
-        System.out.println("Enter one of the following commands:");
+        System.out.println(SET_TEXT_COLOR_WHITE+"Enter one of the following commands:");
         if (state == State.PRELOGIN) {
             help = """
                      - help: display this message
@@ -150,22 +151,31 @@ public class ChessClient implements ServerMessageHandler {
     private void gameplayRepl(Scanner scanner){
         var result = "";
         while(!result.equals("leave")){
-            System.out.print(help());
-            System.out.print(SET_TEXT_COLOR_YELLOW+ ">>> "+SET_TEXT_COLOR_WHITE);
-            String input = scanner.nextLine();
+//            synchronized (websocket){
             try{
-                result = gameplayEval(input, scanner);
-                if(Objects.equals(result, "leave")){
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                System.out.println("Error with sleep");
+                gameplayRepl(scanner);
+            }
+                System.out.flush();
+                System.out.print(help());
+                System.out.print(SET_TEXT_COLOR_YELLOW+ ">>> "+SET_TEXT_COLOR_WHITE);
+                String input = scanner.nextLine();
+                try{
+                    result = gameplayEval(input, scanner);
+                    if(Objects.equals(result, "leave")){
+                        break;
+                    }
+                    System.out.println(result);
+                }catch (Throwable e){
+                    System.out.println(e.getMessage());
+                }
+                if(state == State.POSTLOGIN){
                     break;
                 }
-                System.out.println(result);
-            }catch (Throwable e){
-                System.out.println(e.getMessage());
             }
-            if(state == State.POSTLOGIN){
-                break;
-            }
-        }
+//        }
         if(state == State.POSTLOGIN){
             clearScreen();
             System.out.println("Entering postlogin UI\n");
@@ -184,6 +194,7 @@ public class ChessClient implements ServerMessageHandler {
                 case "help" -> "";
                 case "leave" -> {
                    state = State.POSTLOGIN;
+                   websocket.send(new UserGameCommand(LEAVE,authToken,gameNumber+1));
                    yield "leave";
                 }
                 case "resign" -> resign(scanner);
@@ -198,12 +209,101 @@ public class ChessClient implements ServerMessageHandler {
     }
 
     private String resign(Scanner scanner){
-        System.out.println("THIS IS NOT IMPLEMENTED YET");
+        System.out.println("Are you sure you want to resign? (Y to confirm, resign): ");
+        String input = scanner.nextLine();
+        if(!input.equalsIgnoreCase("y")){
+            return "You have not resigned.";
+        }
+
+        System.out.println("resigning ...");
+        try {
+            websocket.send(new UserGameCommand(RESIGN, authToken, gameNumber + 1));
+            return "";
+        } catch (IOException e) {
+            System.out.println("Error, resign failed");
+        }
         return "";
     }
 
     private String makeMove(Scanner scanner){
-        System.out.println("THIS IS NOT IMPLEMENTED YET");
+        if(color == null){
+            return "Error: cannot move pieces as observer. \n Please try another command \n";
+        }
+        System.out.println("Enter the position of the piece you want to move: (ex. \"B5\")");
+        String input = scanner.nextLine();
+        Map<Character,Integer> map = new HashMap<>();
+        map.put('a',1);
+        map.put('b',2);
+        map.put('c',3);
+        map.put('d',4);
+        map.put('e',5);
+        map.put('f',6);
+        map.put('g',7);
+        map.put('h',8);
+        try{
+            if(input.equals("STOP")){
+                return "";
+            }
+            char[] cInput = input.toCharArray();
+            if(cInput.length != 2){
+                throw new Exception("Invalid position");
+            }
+            char ch = cInput[1];
+            if (ch < '1' || ch > '8') {
+                throw new Exception("Column must be 1-8");
+            }
+            int col = map.get(Character.toLowerCase(cInput[0]));
+            int row = ch - '0';
+            ChessPosition start = new ChessPosition(row,col);
+            System.out.println("Enter the position you want to move the piece to: (ex. \"B5\")");
+            input = scanner.nextLine();
+            if(input.equals("STOP")){
+                return "";
+            }
+            cInput = input.toCharArray();
+            if(cInput.length != 2){
+                throw new Exception("Invalid position");
+            }
+            ch = cInput[1];
+            if (ch < '1' || ch > '8') {
+                throw new Exception("Column must be 1-8");
+            }
+            col = map.get(Character.toLowerCase(cInput[0]));
+            row = ch - '0';
+            ChessPosition end = new ChessPosition(row,col);
+            ChessGame.TeamColor c;
+            if(color == Color.WHITE){
+                c = ChessGame.TeamColor.WHITE;
+            }else{
+                c = ChessGame.TeamColor.BLACK;
+            }
+            ChessBoard board = chessGame.getBoard();
+            ChessPiece p = board.getPiece(start);
+            if(p == null){
+                throw new Exception("no piece at starting position");
+            }
+
+            if(p.getTeamColor() != c){
+                throw new Exception("Attempted to move the other color");
+            }
+            ChessPiece.PieceType promotion = null;
+            int forward = 1;
+            boolean promotionValid = false;
+            if(p.getTeamColor() == ChessGame.TeamColor.BLACK) {forward = -1;}//Black advances opposite of White
+            if(start.getRow()+forward == 1 || start.getRow()+forward == 8) {promotionValid = true;}
+            if(p.getPieceType() == ChessPiece.PieceType.PAWN && promotionValid){
+                promotion = getPromotion(scanner,c);
+            }
+            ChessMove m = new ChessMove(start,end,promotion);
+            var userGameCommand = new UserGameCommand(MAKE_MOVE,authToken,gameNumber+1);
+            userGameCommand.setMove(m);
+            websocket.send(userGameCommand);
+            return "";
+        }catch(Exception e){
+            System.out.println("Error: "+e.getMessage());
+            System.out.println("Try again or type STOP to exit to the Gameplay UI");
+            makeMove(scanner);
+        }
         return "";
     }
 
@@ -410,15 +510,25 @@ public class ChessClient implements ServerMessageHandler {
         System.out.println("Here are all of the games");
         try {
             ArrayList<GameData> games = server.listGames(authToken);
+            if(games.isEmpty()){
+                return "No games have been started. Create a game by typing \"create game\"\n";
+            }
             System.out.print(SET_TEXT_COLOR_GREEN + SET_BG_COLOR_BLACK);
             int counter = 1;
             for(GameData game : games){
                 String gameName = game.gameName();
                 String pB = game.blackUsername();
                 String pW = game.whiteUsername();
+                if(pB == null){
+                    pB = "UNCLAIMED";
+                }
+                if(pW == null){
+                    pW = "UNCLAIMED";
+                }
                 System.out.print(SET_BG_COLOR_BLACK);
                 System.out.println(counter+" Name: "+gameName +
-                        ", White: "+pW+", Black: "+pB+RESET_BG_COLOR);
+                        ", White: "+pW+", Black: "+pB+ " playable: " +
+                        game.game().isPlayable()+RESET_BG_COLOR);
                 counter+=1;
             }
             System.out.print(SET_TEXT_COLOR_WHITE + RESET_BG_COLOR);
@@ -456,16 +566,16 @@ public class ChessClient implements ServerMessageHandler {
                         color = Color.BLACK;
                         u.setColor("BLACK");
                         server.joinGame(new JoinRequest("BLACK", gameToJoin.gameID()), authToken);
-//                        drawBoard(gameToJoin.game().getBoard(), color, null);
                     }else{
                         color = Color.WHITE;
                         u.setColor("WHITE");
                         server.joinGame(new JoinRequest("WHITE", gameToJoin.gameID()), authToken);
-//                        drawBoard(gameToJoin.game().getBoard(), color,null);
                     }
-                    state = State.GAMEPLAY;
-                    websocket.send(u);
-                    return "";
+                    synchronized (websocket){
+                        state = State.GAMEPLAY;
+                        websocket.send(u);
+                        return "";
+                    }
                 }catch(Exception e){
                     if(e.getMessage().equals("Error: already taken")){
                         System.out.println("This player has already been taken. Please try again. Enter \"STOP\" to exit to the menu.");
@@ -503,7 +613,7 @@ public class ChessClient implements ServerMessageHandler {
 //                int gameIDToObserve = gameToObserve.gameID();
                 System.out.println(gameToObserve.whiteUsername()+" is playing as WHITE");
                 System.out.println(gameToObserve.blackUsername()+" is playing as BLACK");
-                drawBoard(gameToObserve.game().getBoard(), Color.WHITE,null);
+//                drawBoard(gameToObserve.game().getBoard(), Color.WHITE,null);
                 state = State.GAMEPLAY;
                 UserGameCommand u = new UserGameCommand(CONNECT,authToken,gameToObserve.gameID());
                 u.setColor("observing");
@@ -540,6 +650,7 @@ public class ChessClient implements ServerMessageHandler {
 
     private void drawBoard(ChessBoard board, Color color, Collection<ChessPosition> highlightedPositions){
         System.out.println("Here is the current board: ");
+        System.out.println("Current turn: "+chessGame.getTeamTurn().toString());
         if(color == Color.WHITE){
             board = flip(board);
         }else{
@@ -647,24 +758,43 @@ public class ChessClient implements ServerMessageHandler {
     }
 
     public void notify(ServerMessage s,String m){
-        ServerMessage.ServerMessageType messageType = s.getServerMessageType();
-        Gson gson = new Gson();
-        switch (messageType){
-            case ERROR:
-                ErrorMessage message = new Gson().fromJson(m, ErrorMessage.class);
-                System.out.println(message.getErrorMessage());
-                break;
-            case LOAD_GAME:
-                LoadGameMessage l = new Gson().fromJson(m, LoadGameMessage.class);;
-                chessGame = l.getChessGame();
-                drawBoard(chessGame.getBoard(),color,null);
-                run();
-                break;
-            case NOTIFICATION:
-                NotificationMessage n = new Gson().fromJson(m, NotificationMessage.class);;
-                String nMessage = n.getMessage();
-                System.out.println(nMessage);
-                break;
+       synchronized (websocket){
+           ServerMessage.ServerMessageType messageType = s.getServerMessageType();
+           switch (messageType){
+               case ERROR:
+                   ErrorMessage message = new Gson().fromJson(m, ErrorMessage.class);
+                   System.out.println(message.getErrorMessage());
+                   break;
+               case LOAD_GAME:
+                   LoadGameMessage l = new Gson().fromJson(m, LoadGameMessage.class);
+                   chessGame = l.getChessGame();
+                   drawBoard(chessGame.getBoard(),color,null);
+//                   run();
+                   break;
+               case NOTIFICATION:
+                   NotificationMessage n = new Gson().fromJson(m, NotificationMessage.class);
+                   String nMessage = n.getMessage();
+                   System.out.println(nMessage);
+                   break;
+           }
+       }
+       System.out.print(SET_TEXT_COLOR_YELLOW+">>> "+SET_TEXT_COLOR_WHITE);
+    }
+
+    private ChessPiece.PieceType getPromotion(Scanner scanner, ChessGame.TeamColor c){
+        System.out.println("Enter the letter of the piece you want to promote your pawn to:" +
+                " (ex. Q,K,R,B) ");
+        String input = scanner.nextLine();
+        Map<Character,ChessPiece> promotionMap = new HashMap<>();
+        promotionMap.put('q',new ChessPiece(c, ChessPiece.PieceType.QUEEN));
+        promotionMap.put('k',new ChessPiece(c, ChessPiece.PieceType.KNIGHT));
+        promotionMap.put('r',new ChessPiece(c, ChessPiece.PieceType.ROOK));
+        promotionMap.put('b',new ChessPiece(c, ChessPiece.PieceType.BISHOP));
+        var cInput = input.toCharArray();
+        if(cInput.length > 1 || promotionMap.get(Character.toLowerCase(cInput[0])) == null){
+            System.out.println("invalid piece type. Try again.");
+            return getPromotion(scanner, c);
         }
+        return promotionMap.get(Character.toLowerCase(cInput[0])).getPieceType();
     }
 }

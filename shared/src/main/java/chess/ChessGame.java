@@ -88,10 +88,10 @@ public class ChessGame {
         ChessPosition start = move.getStartPosition();
         ChessPosition end = move.getEndPosition();
         if(board.getPiece(start) == null){
-            throw new InvalidMoveException("No piece at " + start.toString());
+            throw new InvalidMoveException("No piece at " + start);
         }
         if(board.getPiece(start).getTeamColor() != currentTurn){
-            throw new InvalidMoveException("Can't move a different colored piece.");
+            throw new InvalidMoveException("You can't move that piece right now.");
         }
         ChessPiece piece = board.getPiece(start);
         Collection<ChessMove> possibleMoves = validMoves(start);
@@ -100,7 +100,7 @@ public class ChessGame {
             endPositions.add(m.getEndPosition());
         }
         if(!endPositions.contains(end)){
-            throw new InvalidMoveException("Invalid end position");
+            throw new InvalidMoveException("It is not possible to move there right now");
         }
         if(move.getPromotionPiece() != null) {
             piece = new ChessPiece(piece.getTeamColor(),move.getPromotionPiece());
@@ -151,7 +151,7 @@ public class ChessGame {
         }
         ChessPiece kingInCheck = new ChessPiece(teamColor, ChessPiece.PieceType.KING);
         ArrayList<ChessPosition> piecePositions = getAllPiecePositions();
-        Map<ChessPosition, Collection<ChessMove>> boardMoves = getAllMoves(piecePositions);
+//        Map<ChessPosition, Collection<ChessMove>> boardMoves = getAllMoves(piecePositions);
         ChessPosition kingInCheckPos = getKingPosition(piecePositions,teamColor);
         Collection<ChessMove> kingMoves = validMoves(kingInCheckPos);
         if(!kingMoves.isEmpty()){
@@ -181,8 +181,8 @@ public class ChessGame {
             return false;
         }
         ArrayList<ChessPosition> piecePositions = this.getAllPiecePositions();
-        ChessPosition kingPos = getKingPosition(piecePositions,teamColor);
-        Map<ChessPosition, Collection<ChessMove>> boardMoves = this.getAllMoves(piecePositions);
+//        ChessPosition kingPos = getKingPosition(piecePositions,teamColor);
+//        Map<ChessPosition, Collection<ChessMove>> boardMoves = this.getAllMoves(piecePositions);
         for(ChessPosition pos : piecePositions){
             if(board.getPiece(pos).getTeamColor() == teamColor){//only look at your team's piece color
                 Collection<ChessMove> pieceMoves = validMoves(pos);

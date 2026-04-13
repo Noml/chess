@@ -11,10 +11,14 @@ import model.AuthData;
 import model.GameData;
 import org.jetbrains.annotations.NotNull;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
 import websocket.messages.Notification;
 import websocket.messages.ServerMessage;
 
 import java.util.ArrayList;
+
+import static websocket.messages.ServerMessage.ServerMessageType.*;
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
     private DatabaseManager dbM;
@@ -45,9 +49,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     @Override
     public void handleMessage(@NotNull WsMessageContext ctx) throws Exception {
+//        System.out.println("Message recieved");
         UserGameCommand userGameCommand = new Gson().fromJson(ctx.message(),UserGameCommand.class);
         if(!isValid(userGameCommand)){
-            ctx.send("Error: invalid information");
+            ctx.send(gson.toJson(new ErrorMessage(ERROR, "Error: invalid information")));
             return;
         }
         int gameID = userGameCommand.getGameID();
@@ -60,8 +65,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         String username = authDAO.getAuthData(auth).username();
         String color = userGameCommand.getColor();
         if(color == null || color.isEmpty()){
-            ctx.send(gson.toJson(new ServerMessage(ServerMessage.ServerMessageType.ERROR,
-                    "Error: no color added")));
+            ctx.send(gson.toJson(new ErrorMessage(ERROR, "Error: no color added")));
             return;
         }
         Notification n;
@@ -74,7 +78,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     n = new Notification(username + " is observing");
                 }
                 connectionManager.broadcast(ctx.session,n);
-                ctx.send(gson.toJson(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, gson.toJson(gameData))));
+                ctx.send(gson.toJson(new LoadGameMessage(LOAD_GAME, gameData.game())));
                 break;
             case LEAVE:
                 String a = "";
@@ -105,11 +109,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     for(Notification x : notifications){
                         connectionManager.broadcast(ctx.session,x);
                     }
-                    ctx.send(gson.toJson(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME,
-                            gson.toJson(game))));
+                    ctx.send(gson.toJson(new LoadGameMessage(LOAD_GAME, game)));
                 }catch (Exception e){
-                    ctx.send(gson.toJson(new ServerMessage(ServerMessage.ServerMessageType.ERROR,
-                            e.getMessage())));
+                    ctx.send(gson.toJson(new ErrorMessage(ERROR, e.getMessage())));
                 }
                 break;
         }
@@ -174,8 +176,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             gameDAO.updateGame(gameData);
 
         }catch (Exception e){
-            n = new Notification(gson.toJson(new ServerMessage(ServerMessage.ServerMessageType.ERROR,
-                    "Error: "+ e.getMessage())));
+            n = new Notification(gson.toJson(new ErrorMessage(ERROR, "Error: "+ e.getMessage())));
             throw new Exception(n.message());
         }
         return null;

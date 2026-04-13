@@ -1,12 +1,18 @@
 package client;
 
-import chess.ChessBoard;
-import chess.ChessMove;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
+import client.websocket.WebsocketFacade;
+import com.google.gson.Gson;
 import model.GameData;
 import client.results.*;
 import client.requests.*;
+import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
+
+import static websocket.commands.UserGameCommand.CommandType.*;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -14,7 +20,7 @@ import java.util.*;
 
 import static ui.EscapeSequences.*;
 
-public class ChessClient {
+public class ChessClient implements ServerMessageHandler {
     enum State{
         PRELOGIN,POSTLOGIN,GAMEPLAY
     }
@@ -22,14 +28,17 @@ public class ChessClient {
         BLACK,WHITE
     }
     private final ServerFacade server;
+    private WebsocketFacade websocket;
     private State state;
     private String authToken;
     private boolean admin = false;
     private Color color;
     private int gameNumber;
+    private ChessGame chessGame;
 
-    public ChessClient(String serverUrl){
+    public ChessClient(String serverUrl) throws Exception {
         server = new ServerFacade(serverUrl);
+        websocket = new WebsocketFacade(serverUrl,this);
         state = State.PRELOGIN;
         color = null;
     }
@@ -180,6 +189,7 @@ public class ChessClient {
                 case "resign" -> resign(scanner);
                 case "highlight legal moves" -> drawHighlightedBoard(scanner);
                 case "redraw chess board" -> redrawChessboard();
+                case "make move" -> makeMove(scanner);
                 default -> "Invalid input, try again";
             };
         }catch (Exception ex) {
@@ -188,15 +198,17 @@ public class ChessClient {
     }
 
     private String resign(Scanner scanner){
+        System.out.println("THIS IS NOT IMPLEMENTED YET");
+        return "";
+    }
 
+    private String makeMove(Scanner scanner){
+        System.out.println("THIS IS NOT IMPLEMENTED YET");
         return "";
     }
 
     private String drawHighlightedBoard(Scanner scanner){
         try {
-
-            ArrayList<GameData> games = server.listGames(authToken);
-            GameData gameData = games.get(gameNumber);
             System.out.println("Enter the position of the piece you want to check its moves: (ex. \"B5\")");
             String input = scanner.nextLine();
             Map<Character,Integer> map = new HashMap<>();
@@ -223,7 +235,7 @@ public class ChessClient {
                 int col = map.get(Character.toLowerCase(cInput[0]));
                 int row = ch - '0';
                 ChessPosition start = new ChessPosition(row,col);
-                Collection<ChessMove> moves = gameData.game().validMoves(start);
+                Collection<ChessMove> moves = chessGame.validMoves(start);
                 Collection<ChessPosition> posToHighlight = new ArrayList<>();
                 for(ChessMove move : moves){
                     posToHighlight.add(move.getEndPosition());
@@ -231,7 +243,7 @@ public class ChessClient {
                 if(color == null){
                     color = Color.WHITE;
                 }
-                drawBoard(gameData.game().getBoard(), color, posToHighlight);
+                drawBoard(chessGame.getBoard(), color, posToHighlight);
 
             }catch(Exception e){
                 System.out.println("Invalid position. Try again or type STOP to exit to the Gameplay UI");
@@ -245,12 +257,10 @@ public class ChessClient {
 
     private String redrawChessboard(){
         try {
-            ArrayList<GameData> games = server.listGames(authToken);
-            GameData gameData = games.get(gameNumber);
             if(color == null){
                 color = Color.WHITE;
             }
-            drawBoard(gameData.game().getBoard(), color, null);
+            drawBoard(chessGame.getBoard(), color, null);
         } catch (Exception e) {
             return e.getMessage();
         }
@@ -441,16 +451,20 @@ public class ChessClient {
                     throw new Exception("That was not a valid color. Please try again");
                 }
                 try{
+                    var u = new UserGameCommand(CONNECT,authToken,gameToJoin.gameID());
                     if(input.equals("b") || input.equals("black")) {
                         color = Color.BLACK;
+                        u.setColor("BLACK");
                         server.joinGame(new JoinRequest("BLACK", gameToJoin.gameID()), authToken);
-                        drawBoard(gameToJoin.game().getBoard(), color, null);
+//                        drawBoard(gameToJoin.game().getBoard(), color, null);
                     }else{
                         color = Color.WHITE;
+                        u.setColor("WHITE");
                         server.joinGame(new JoinRequest("WHITE", gameToJoin.gameID()), authToken);
-                        drawBoard(gameToJoin.game().getBoard(), color,null);
+//                        drawBoard(gameToJoin.game().getBoard(), color,null);
                     }
                     state = State.GAMEPLAY;
+                    websocket.send(u);
                     return "";
                 }catch(Exception e){
                     if(e.getMessage().equals("Error: already taken")){
@@ -491,6 +505,9 @@ public class ChessClient {
                 System.out.println(gameToObserve.blackUsername()+" is playing as BLACK");
                 drawBoard(gameToObserve.game().getBoard(), Color.WHITE,null);
                 state = State.GAMEPLAY;
+                UserGameCommand u = new UserGameCommand(CONNECT,authToken,gameToObserve.gameID());
+                u.setColor("observing");
+                websocket.send(u);
             } catch (Exception e) {
                 System.out.println(e.getMessage());
                 observeGame(scan);
@@ -627,5 +644,27 @@ public class ChessClient {
 
     private void printPiece(PrintStream out, String colorBG, String label){
         out.print(colorBG + " "+label+" "+RESET_BG_COLOR+RESET_TEXT_COLOR);
+    }
+
+    public void notify(ServerMessage s,String m){
+        ServerMessage.ServerMessageType messageType = s.getServerMessageType();
+        Gson gson = new Gson();
+        switch (messageType){
+            case ERROR:
+                ErrorMessage message = new Gson().fromJson(m, ErrorMessage.class);
+                System.out.println(message.getErrorMessage());
+                break;
+            case LOAD_GAME:
+                LoadGameMessage l = new Gson().fromJson(m, LoadGameMessage.class);;
+                chessGame = l.getChessGame();
+                drawBoard(chessGame.getBoard(),color,null);
+                run();
+                break;
+            case NOTIFICATION:
+                NotificationMessage n = new Gson().fromJson(m, NotificationMessage.class);;
+                String nMessage = n.getMessage();
+                System.out.println(nMessage);
+                break;
+        }
     }
 }

@@ -10,7 +10,6 @@ import java.util.Objects;
  */
 public class ServerMessage {
     ServerMessageType serverMessageType;
-    String messageJson;
 
     public enum ServerMessageType {
         LOAD_GAME,
@@ -18,16 +17,12 @@ public class ServerMessage {
         NOTIFICATION
     }
 
-    public ServerMessage(ServerMessageType type, String messageJson) {
+    public ServerMessage(ServerMessageType type) {
         this.serverMessageType = type;
-        this.messageJson = messageJson;
     }
 
     public ServerMessageType getServerMessageType() {
         return this.serverMessageType;
-    }
-    public String getServerMessage() {
-        return this.messageJson;
     }
 
     @Override

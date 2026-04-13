@@ -11,7 +11,11 @@ public class ClientMain {
         var serverUrl = "http://localhost:"+port;
         System.out.println("Server started on "+ serverUrl);
         System.out.println("Welcome to chess!");
-        new ChessClient(serverUrl).run();
+        try{
+            new ChessClient(serverUrl).run();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
         System.out.println("Thank you for playing chess! \n***Quitting***");
     }
 }

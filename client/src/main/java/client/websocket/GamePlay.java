@@ -20,6 +20,7 @@ public class GamePlay {
     ChessGame chessGame;
     ChessClient.Color color;
     ChessClient chessClient;
+    private Map<Character,Integer> map;
 
     public GamePlay(WebsocketFacade wS,String aT,int gN,ChessGame cG,ChessClient.Color c,ChessClient cC){
         websocket = wS;
@@ -28,6 +29,15 @@ public class GamePlay {
         chessGame = cG;
         color = c;
         chessClient = cC;
+        map = new HashMap<>();
+        map.put('a',1);
+        map.put('b',2);
+        map.put('c',3);
+        map.put('d',4);
+        map.put('e',5);
+        map.put('f',6);
+        map.put('g',7);
+        map.put('h',8);
     }
 
     public String resign(Scanner scanner){
@@ -47,34 +57,29 @@ public class GamePlay {
         return "";
     }
 
+    public ChessPosition getPositionFromInput(String input) throws Exception {
+        char[] cInput = input.toCharArray();
+        if(cInput.length != 2){
+            throw new Exception("Invalid position");
+        }
+        char ch = cInput[1];
+        if (ch < '1' || ch > '8') {
+            throw new Exception("Column must be 1-8");
+        }
+        int col = map.get(Character.toLowerCase(cInput[0]));
+        int row = ch - '0';
+        return new ChessPosition(row,col);
+    }
+
     public String drawHighlightedBoard(Scanner scanner){
         try {
             System.out.println("Enter the position of the piece you want to check its moves: (ex. \"B5\")");
             String input = scanner.nextLine();
-            Map<Character,Integer> map = new HashMap<>();
-            map.put('a',1);
-            map.put('b',2);
-            map.put('c',3);
-            map.put('d',4);
-            map.put('e',5);
-            map.put('f',6);
-            map.put('g',7);
-            map.put('h',8);
+            if(input.equals("STOP")){
+                return "";
+            }
             try{
-                if(input.equals("STOP")){
-                    return "";
-                }
-                char[] cInput = input.toCharArray();
-                if(cInput.length != 2){
-                    throw new Exception("Invalid position");
-                }
-                char ch = cInput[1];
-                if (ch < '1' || ch > '8') {
-                    throw new Exception("Column must be 1-8");
-                }
-                int col = map.get(Character.toLowerCase(cInput[0]));
-                int row = ch - '0';
-                ChessPosition start = new ChessPosition(row,col);
+                ChessPosition start = getPositionFromInput(input);
                 Collection<ChessMove> moves = chessGame.validMoves(start);
                 Collection<ChessPosition> posToHighlight = new ArrayList<>();
                 for(ChessMove move : moves){
@@ -113,46 +118,17 @@ public class GamePlay {
         }
         System.out.println("Enter the position of the piece you want to move: (ex. \"B5\")");
         String input = scanner.nextLine();
-        Map<Character,Integer> map = new HashMap<>();
-        map.put('a',1);
-        map.put('b',2);
-        map.put('c',3);
-        map.put('d',4);
-        map.put('e',5);
-        map.put('f',6);
-        map.put('g',7);
-        map.put('h',8);
         try{
             if(input.equals("STOP")){
                 return "";
             }
-            char[] cInput = input.toCharArray();
-            if(cInput.length != 2){
-                throw new Exception("Invalid position");
-            }
-            char ch = cInput[1];
-            if (ch < '1' || ch > '8') {
-                throw new Exception("Column must be 1-8");
-            }
-            int col = map.get(Character.toLowerCase(cInput[0]));
-            int row = ch - '0';
-            ChessPosition start = new ChessPosition(row,col);
+            ChessPosition start = getPositionFromInput(input);
             System.out.println("Enter the position you want to move the piece to: (ex. \"B5\")");
             input = scanner.nextLine();
             if(input.equals("STOP")){
                 return "";
             }
-            cInput = input.toCharArray();
-            if(cInput.length != 2){
-                throw new Exception("Invalid position");
-            }
-            ch = cInput[1];
-            if (ch < '1' || ch > '8') {
-                throw new Exception("Column must be 1-8");
-            }
-            col = map.get(Character.toLowerCase(cInput[0]));
-            row = ch - '0';
-            ChessPosition end = new ChessPosition(row,col);
+            ChessPosition end = getPositionFromInput(input);
             ChessGame.TeamColor c;
             if(color == ChessClient.Color.WHITE){
                 c = ChessGame.TeamColor.WHITE;
@@ -247,31 +223,7 @@ public class GamePlay {
                     p = " ";
                     tF = RESET_TEXT_COLOR;
                 }
-                if(r%2==0){
-                    if(i%2 == 0){
-                        bgF = SET_BG_COLOR_WHITE;
-                        if(highlightedPositions!= null && highlightedPositions.contains(pos)){
-                            bgF = SET_BG_COLOR_GREEN;
-                        }
-                    }else{
-                        bgF = SET_BG_COLOR_BLACK;
-                        if(highlightedPositions!= null && highlightedPositions.contains(pos)){
-                            bgF = SET_BG_COLOR_DARK_GREEN;
-                        }
-                    }
-                }else{
-                    if (i % 2 == 0) {
-                        bgF = SET_BG_COLOR_BLACK;
-                        if (highlightedPositions!= null && highlightedPositions.contains(pos)) {
-                            bgF = SET_BG_COLOR_DARK_GREEN;
-                        }
-                    } else {
-                        bgF = SET_BG_COLOR_WHITE;
-                        if (highlightedPositions!= null && highlightedPositions.contains(pos)) {
-                            bgF = SET_BG_COLOR_GREEN;
-                        }
-                    }
-                }
+                bgF = formatPiece(highlightedPositions, r, i, pos);
                 p = tF+p;
                 printPiece(out,bgF,p);
             }
@@ -283,6 +235,36 @@ public class GamePlay {
             printPiece(out, SET_BG_COLOR_LIGHT_GREY,header[i]);
         }
         out.print("\n");
+    }
+
+    private static String formatPiece(Collection<ChessPosition> highlightedPositions, int r, int i, ChessPosition pos) {
+        String bgF;
+        if(r %2==0){
+            if(i %2 == 0){
+                bgF = SET_BG_COLOR_WHITE;
+                if(highlightedPositions != null && highlightedPositions.contains(pos)){
+                    bgF = SET_BG_COLOR_GREEN;
+                }
+            }else{
+                bgF = SET_BG_COLOR_BLACK;
+                if(highlightedPositions != null && highlightedPositions.contains(pos)){
+                    bgF = SET_BG_COLOR_DARK_GREEN;
+                }
+            }
+        }else{
+            if (i % 2 == 0) {
+                bgF = SET_BG_COLOR_BLACK;
+                if (highlightedPositions != null && highlightedPositions.contains(pos)) {
+                    bgF = SET_BG_COLOR_DARK_GREEN;
+                }
+            } else {
+                bgF = SET_BG_COLOR_WHITE;
+                if (highlightedPositions != null && highlightedPositions.contains(pos)) {
+                    bgF = SET_BG_COLOR_GREEN;
+                }
+            }
+        }
+        return bgF;
     }
 
     private ChessPosition flipChessPos(ChessPosition pos){

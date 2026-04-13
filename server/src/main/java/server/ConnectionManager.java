@@ -15,22 +15,30 @@ import java.util.Set;
 import static websocket.messages.ServerMessage.ServerMessageType.NOTIFICATION;
 
 public class ConnectionManager {
-    public final Set<Session> connections = new HashSet<>();
 
-    public void add(Session session) {
-        connections.add(session);
+    private final Map<Integer,Set<Session>> connectionMap = new HashMap<>();
+
+    public void add(Session session, int gameID) {
+        connectionMap.computeIfAbsent(gameID, k -> new HashSet<>()).add(session);
     }
 
-    public void remove(Session session) throws Exception {
+    public void remove(Session session,int gameID) throws Exception {
         try {
-            connections.remove(session);
+            var connections = connectionMap.get(gameID);
+            if(connections != null){
+                connections.remove(session);
+                if(connections.isEmpty()){
+                    connectionMap.remove(gameID);
+                }
+            }
         } catch (Exception e) {
             throw new Exception("Session not found in map of sessions",e);
         }
     }
 
-    public void broadcast(Session excludeSession, Notification notification) throws IOException {
+    public void broadcast(Session excludeSession, Notification notification, int gameID) throws IOException {
         Gson gson = new Gson();
+        var connections = connectionMap.get(gameID);
         NotificationMessage n = new NotificationMessage(NOTIFICATION,notification.message());
         String msg =  gson.toJson(n);
         for (Session c : connections) {
@@ -42,8 +50,9 @@ public class ConnectionManager {
         }
     }
 
-    public void broadcast(Session excludeSession, ServerMessage serverMessage) throws IOException {
+    public void broadcast(Session excludeSession, ServerMessage serverMessage,int gameID) throws IOException {
         Gson gson = new Gson();
+        var connections = connectionMap.get(gameID);
         String msg =  gson.toJson(serverMessage);
         for (Session c : connections) {
             if (c.isOpen()) {

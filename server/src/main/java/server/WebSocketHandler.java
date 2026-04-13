@@ -77,13 +77,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         Notification n;
         switch (userGameCommand.getCommandType()){
             case CONNECT:
-                connectionManager.add(ctx.session);
+                connectionManager.add(ctx.session,gameID);
                 if(!color.equals("observing")){
                     n = new Notification(username + " joined as "+ color);
                 }else{
                     n = new Notification(username + " is observing");
                 }
-                connectionManager.broadcast(ctx.session,n);
+                connectionManager.broadcast(ctx.session,n,gameID);
                 ctx.send(gson.toJson(new LoadGameMessage(LOAD_GAME, gameData.game())));
                 break;
             case LEAVE:
@@ -92,15 +92,25 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     a = color;
                 }
                 n = new Notification(username + "left "+a);
-                connectionManager.broadcast(ctx.session,n);
-                connectionManager.remove(ctx.session);
+                connectionManager.broadcast(ctx.session,n,gameID);
+                connectionManager.remove(ctx.session,gameID);
                 if(!color.equals("observing")){
                     gameDAO.removePlayer(gameID,color,username);
                 }
                 break;
             case RESIGN:
+                if(!playable){
+                    ErrorMessage errorMessage = new ErrorMessage(ERROR,"Error: tried to resign after game over");
+                    ctx.send(gson.toJson(errorMessage));
+                    break;
+                }
+                if(color.equals("observing")){
+                    ErrorMessage errorMessage = new ErrorMessage(ERROR,"Error: tried to resign as observer");
+                    ctx.send(gson.toJson(errorMessage));
+                    break;
+                }
                 n = new Notification(username + "resigned");
-                connectionManager.broadcast(ctx.session,n);
+                connectionManager.broadcast(null,n,gameID);
                 game.unplayable();
                 gameData = new GameData(gameID,
                         gameData.whiteUsername(),
@@ -112,7 +122,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             case MAKE_MOVE:
                 try {
                     makeMove(gameData, userGameCommand, color, ctx, connectionManager);
-                    connectionManager.broadcast(null, new LoadGameMessage(LOAD_GAME, game));
+                    connectionManager.broadcast(null, new LoadGameMessage(LOAD_GAME, game),gameID);
                 }catch (Exception e){
                     ctx.send(gson.toJson(new ErrorMessage(ERROR, e.getMessage())));
                 }
@@ -176,7 +186,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             game.makeMove(move);
             ChessBoard board1 = game.getBoard();
             n = new Notification(username + " moved "+p.toString() + ": " + move.toString());
-            connectionManager.broadcast(ctx.session,n);
+            connectionManager.broadcast(ctx.session,n,gameID);
             if(game.isInCheck(ChessGame.TeamColor.BLACK)){
                 n = new Notification("BLACK is in check!");
                 if(game.isInCheckmate(ChessGame.TeamColor.BLACK)) {
@@ -187,7 +197,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     n = new Notification("BLACK is in stalemate!");
                     game.unplayable();
                 }
-                connectionManager.broadcast(null,n);
+                connectionManager.broadcast(null,n,gameID);
             } else if (game.isInCheck(ChessGame.TeamColor.WHITE)) {
                 n = new Notification("WHITE is in check!");
                 if (game.isInCheckmate(ChessGame.TeamColor.WHITE)) {
@@ -198,7 +208,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     n = new Notification("WHITE is in stalemate!");
                     game.unplayable();
                 }
-                connectionManager.broadcast(null,n);
+                connectionManager.broadcast(null,n,gameID);
             }
             gameData = new GameData(gameID,gameData.whiteUsername(),
                     gameData.blackUsername(),gameData.gameName(),game);

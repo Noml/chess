@@ -64,10 +64,11 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         String username = authDAO.getAuthData(auth).username();
         String color = userGameCommand.getColor();
         if(color == null || color.isEmpty()){
-//            ctx.send(gson.toJson(new ErrorMessage(ERROR, "Error: no color added")));
-            if(gameData.whiteUsername().equals(username)){
+            String b = gameData.blackUsername();
+            String w = gameData.whiteUsername();
+            if(w!= null && gameData.whiteUsername().equals(username)){
                 color = "WHITE";
-            }else if(gameData.blackUsername().equals(username)){
+            }else if(b!= null && gameData.blackUsername().equals(username)){
                 color = "BLACK";
             }else{
                 color = "observing";
@@ -110,11 +111,12 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 break;
             case MAKE_MOVE:
                 try {
-                    ArrayList<Notification> notifications = makeMove(gameData, userGameCommand);
+                    ArrayList<Notification> notifications = makeMove(gameData, userGameCommand, color);
+
                     for(Notification x : notifications){
                         connectionManager.broadcast(ctx.session,x);
                     }
-                    ctx.send(gson.toJson(new LoadGameMessage(LOAD_GAME, game)));
+                    connectionManager.broadcast(null, new LoadGameMessage(LOAD_GAME, game));
                 }catch (Exception e){
                     ctx.send(gson.toJson(new ErrorMessage(ERROR, e.getMessage())));
                 }
@@ -148,14 +150,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         return true;
     }
 
-    private ArrayList<Notification> makeMove(GameData gameData, UserGameCommand userGameCommand) throws Exception {
+    private ArrayList<Notification> makeMove(GameData gameData, UserGameCommand userGameCommand, String color) throws Exception {
         ChessBoard board = gameData.game().getBoard();
         int gameID = userGameCommand.getGameID();
         ChessGame game = gameData.game();
         boolean playable = game.isPlayable();
         String auth = userGameCommand.getAuthToken();
         String username = authDAO.getAuthData(auth).username();
-        String color = userGameCommand.getColor();
         Notification n;
         ArrayList<Notification> notifications = new ArrayList<>();
 
@@ -164,47 +165,45 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             if(!playable){
                 throw new Exception("unplayable game");
             }
-            game.makeMove(move);
             ChessPiece p = board.getPiece(move.getStartPosition());
+            game.makeMove(move);
+            ChessBoard board1 = game.getBoard();
             n = new Notification(username + " moved "+p.toString() + ": " + move.toString());
             notifications.add(n);
-//            connectionManager.broadcast(ctx.session,n);
             if(game.isInCheck(ChessGame.TeamColor.BLACK)){
                 n = new Notification("BLACK is in check!");
-//                connectionManager.broadcast(ctx.session,n);
+                notifications.add(n);
             } else if (game.isInCheck(ChessGame.TeamColor.WHITE)) {
                 n = new Notification("WHITE is in check!");
-//                connectionManager.broadcast(ctx.session,n);
+                notifications.add(n);
             }
-            notifications.add(n);
             if(game.isInCheckmate(ChessGame.TeamColor.BLACK)){
                 n = new Notification("BLACK is in checkmate!");
                 game.unplayable();
-//                connectionManager.broadcast(ctx.session,n);
+                notifications.add(n);
             } else if (game.isInCheckmate(ChessGame.TeamColor.WHITE)) {
                 n = new Notification("WHITE is in checkmate!");
-//                connectionManager.broadcast(ctx.session,n);
                 game.unplayable();
+                notifications.add(n);
             }
-            notifications.add(n);
             if(game.isInStalemate(ChessGame.TeamColor.BLACK)){
                 n = new Notification("BLACK is in stalemate!");
-//                connectionManager.broadcast(ctx.session,n);
                 game.unplayable();
+                notifications.add(n);
             } else if (game.isInStalemate(ChessGame.TeamColor.WHITE)) {
                 n = new Notification("WHITE is in stalemate!");
-//                connectionManager.broadcast(ctx.session,n);
                 game.unplayable();
+                notifications.add(n);
             }
             gameData = new GameData(gameID,gameData.whiteUsername(),
                     gameData.blackUsername(),gameData.gameName(),game);
             gameDAO.updateGame(gameData);
+            return notifications;
 
         }catch (Exception e){
             n = new Notification(gson.toJson(new ErrorMessage(ERROR, "Error: "+ e.getMessage())));
             throw new Exception(n.message());
         }
-        return null;
     }
 
 }

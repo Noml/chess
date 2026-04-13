@@ -66,6 +66,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         String color = userGameCommand.getColor();
         if(color == null || color.isEmpty()){
             ctx.send(gson.toJson(new ErrorMessage(ERROR, "Error: no color added")));
+            //Edit to not throw an error. Assign color based on authtoken and gameID.
             return;
         }
         Notification n;

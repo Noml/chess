@@ -65,9 +65,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         String username = authDAO.getAuthData(auth).username();
         String color = userGameCommand.getColor();
         if(color == null || color.isEmpty()){
-            ctx.send(gson.toJson(new ErrorMessage(ERROR, "Error: no color added")));
-            //Edit to not throw an error. Assign color based on authtoken and gameID.
-            return;
+//            ctx.send(gson.toJson(new ErrorMessage(ERROR, "Error: no color added")));
+            if(gameData.whiteUsername().equals(username)){
+                color = "WHITE";
+            }else if(gameData.blackUsername().equals(username)){
+                color = "BLACK";
+            }else{
+                color = "observing";
+            }
         }
         Notification n;
         switch (userGameCommand.getCommandType()){

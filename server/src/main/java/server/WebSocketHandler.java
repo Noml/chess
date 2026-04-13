@@ -49,7 +49,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     @Override
     public void handleMessage(@NotNull WsMessageContext ctx) throws Exception {
-//        System.out.println("Message recieved");
         UserGameCommand userGameCommand = new Gson().fromJson(ctx.message(),UserGameCommand.class);
         if(!isValid(userGameCommand)){
             ctx.send(gson.toJson(new ErrorMessage(ERROR, "Error: invalid information")));
@@ -126,7 +125,27 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private boolean isValid(UserGameCommand userGameCommand){
         if(userGameCommand.getGameID() == null){
             return false;
-        }else return userGameCommand.getAuthToken() != null;
+        }else if(userGameCommand.getAuthToken() == null){
+            return false;
+        }
+        try{
+            GameData g = gameDAO.findGame(userGameCommand.getGameID());
+            if(g == null){
+                throw new Exception("Invalid gameID");
+            }
+            AuthData a = authDAO.getAuthData(userGameCommand.getAuthToken());
+            String black = g.blackUsername();
+            String white = g.whiteUsername();
+            if(black != null && black.equals(a.username())){
+                return true;
+            }
+            if(white != null && white.equals(a.username())){
+                return true;
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
     }
 
     private ArrayList<Notification> makeMove(GameData gameData, UserGameCommand userGameCommand) throws Exception {
